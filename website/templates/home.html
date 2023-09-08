@@ -1,0 +1,94 @@
+{% extends "base.html" %} {% block title %}Home{% endblock %} {% block content
+%}
+<div class="button-container">
+  {% set button_names = [ "Конференц-зал", "Компьютерный зал", "Зал для
+  презентаций", "Аудитория", "Мультимедийный зал", "Тренинг-зал" ] %} {% for i
+  in range(button_names|length) %}
+  <button
+    type="button"
+    class="button"
+    data-toggle="modal"
+    data-target="#bookingModal{{ i + 1 }}"
+    data-room-number="{{ i + 1 }}"
+  >
+    {{ button_names[i] }}
+  </button>
+  {% endfor %}
+</div>
+
+<!-- HTML-код модального окна -->
+{% for i in range(1, 7) %}
+<div
+  class="modal fade"
+  id="bookingModal{{ i }}"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="bookingModalLabel{{ i }}"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="bookingModalLabel{{ i }}">
+          Бронирование комнаты №{{ i }}
+        </h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <!-- Форма для заполнения данных бронирования -->
+        <form action="/book_room" method="POST">
+          <input type="hidden" name="roomNumber" value="{{ i }}" />
+          <div class="form-group">
+            <label for="title{{ i }}">Название</label>
+            <input
+              type="text"
+              class="form-control"
+              id="title{{ i }}"
+              name="title"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="startDate{{ i }}">Дата и время начала</label>
+            <input
+              type="datetime-local"
+              class="form-control"
+              id="startDate{{ i }}"
+              name="startDate"
+              required
+              min="{{ current_datetime.strftime('%Y-%m-%dT%H:%M') }}"
+              step="60"
+            />
+          </div>
+          <div class="form-group">
+            <label for="endDate{{ i }}">Дата и время окончания</label>
+            <input
+              type="datetime-local"
+              class="form-control"
+              id="endDate{{ i }}"
+              name="endDate"
+              required
+            />
+          </div>
+          <button type="submit" class="btn btn-primary">Забронировать</button>
+        </form>
+
+        <div id="bookingInfo{{ i }}">
+          <h4>Информация о бронировании:</h4>
+          <p>Текущая дата и время: <span id="currentDatetime"></span></p>
+          <p>Занятые временные интервалы:</p>
+          <ul id="occupiedTimes{{ i }}"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}
