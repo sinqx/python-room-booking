@@ -65,6 +65,7 @@ def sign_up():
                 first_name=first_name,
                 second_name=second_name,
                 password=generate_password_hash(password1, method="sha256"),
+                role="user",
             )
             db.session.add(new_user)
             db.session.commit()
