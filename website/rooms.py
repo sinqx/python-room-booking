@@ -12,21 +12,41 @@ rooms = Blueprint("rooms", __name__)
 @login_required
 def home():
     currentDatetime = datetime.now()
+
+    my_rooms = Room.query.filter(
+        Room.userId == current_user.id, Room.endDate > currentDatetime
+    ).all()
+    print(my_rooms)
+    myRooms = []
+    for room in my_rooms:
+        start_time = room.startDate.strftime("%Y-%m-%d -- %H:%M")
+        end_time = room.endDate.strftime("%Y-%m-%d -- %H:%M")
+        room_name = room.roomNumber
+        booked_by_name = f"{room.user.first_name} {room.user.second_name}"
+        event_name = room.conferenceTitle
+        myRooms.append(
+            {
+                "room_name": room_name,
+                "start_time": start_time,
+                "end_time": end_time,
+                "booked_by_name": booked_by_name,
+                "event_name": event_name,
+            }
+        )
+
     return render_template(
-        "home.html", user=current_user, current_datetime=currentDatetime
+        "home.html",
+        user=current_user,
+        current_datetime=currentDatetime,
+        myRooms=myRooms,
     )
-
-
-from flask import render_template
 
 
 @rooms.route("/roomInfo/", methods=["GET"])
 def get_room_info():
     room_number = int(request.args.get("roomNumber"))
-    print(room_number)
     booking_list = Room.query.filter((Room.roomNumber == room_number)).all()
 
-    print(booking_list)
     occupied_times = []
     for booking in booking_list:
         start_time = booking.startDate.strftime("%Y-%m-%dT%H:%M")
@@ -55,11 +75,10 @@ def book_room():
 
     if end_date - start_date > timedelta(hours=2):
         flash("Нельзя бронировать зал более чем на 2 часа", category="error")
-    elif end_date <= start_date + timedelta(minutes=15):
+    elif end_date < start_date + timedelta(minutes=15):
         flash("Нельзя бронировать зал менее чем на 15 минут", category="error")
     else:
         existing_bookings = Room.query.filter(
-            Room.startDate > datetime.now(),
             Room.roomNumber == room_number,
             or_(
                 and_(
@@ -68,6 +87,12 @@ def book_room():
                 and_(
                     Room.startDate == start_date, Room.endDate == end_date
                 ),  # Проверка точного совпадения времени бронирования
+                and_(
+                    Room.startDate < start_date, Room.endDate > start_date
+                ),  # Проверка частичного перекрытия броней
+                and_(
+                    Room.startDate < end_date, Room.endDate > end_date
+                ),  # Проверка частичного перекрытия броней
             ),
         ).all()
 
@@ -86,9 +111,7 @@ def book_room():
             db.session.commit()
             flash("Комната успешно забронирована", category="success")
 
-    return render_template(
-        "home.html", user=current_user, current_datetime=datetime.now()
-    )
+    return redirect(url_for("rooms.home"))
 
 
 @rooms.route("/cancel_book", methods=["PATCH", "DELETE"])
