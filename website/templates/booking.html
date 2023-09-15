@@ -1,0 +1,88 @@
+{% for i in range(0, 6) %}
+<div
+  class="modal fade"
+  id="bookingModal{{ i }}"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="bookingModalLabel{{ i }}"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="bookingModalLabel{{ i }}">
+          Бронирование комнаты №{{ i }}
+        </h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <!-- Форма для заполнения данных бронирования -->
+        <form action="/book_room" method="POST">
+          <input type="hidden" name="roomNumber" value="{{ i }}" />
+          <div class="form-group">
+            <label for="title{{ i }}">Название</label>
+            <input
+              type="text"
+              class="form-control"
+              id="title{{ i }}"
+              name="title"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="startDate{{ i }}">Дата и время начала</label>
+            <input
+              type="datetime-local"
+              class="form-control"
+              id="startDate{{ i }}"
+              name="startDate"
+              required
+              min="{{ current_datetime.strftime('%Y-%m-%dT%H:%M') }}"
+              step="60"
+            />
+          </div>
+          <div class="form-group">
+            <label for="endDate{{ i }}">Дата и время окончания</label>
+            <input
+              type="datetime-local"
+              class="form-control"
+              id="endDate{{ i }}"
+              name="endDate"
+              required
+              min="{{ current_datetime.strftime('%Y-%m-%dT%H:%M') }}"
+              step="60"
+            />
+          </div>
+          <div class="form-group">
+            <label for="message{{ i }}">Комментарий</label>
+            <input
+              type="text"
+              class="form-control"
+              id="message{{ i }}"
+              name="message"
+              required
+            />
+          </div>
+          <button type="submit" class="btn btn-primary">Забронировать</button>
+        </form>
+        <br></br>
+
+        <div id="bookingInfo{{ i }}">
+          <h4>Информация о бронировании:</h4>
+          <p>Текущая дата и время: <span id="currentDatetime"></span></p>
+          <p>Занятые временные интервалы:</p>
+          <ul id="occupiedTimes{{ i }}"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
