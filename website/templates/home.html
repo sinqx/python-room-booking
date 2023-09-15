@@ -1,125 +1,73 @@
 {% extends "base.html" %} {% block title %}Home{% endblock %} {% block content
 %}
-<div class="button-container">
-  {% set button_names = [ "Конференц-зал", "Компьютерный зал", "Зал для
-  презентаций", "Аудитория", "Мультимедийный зал", "Тренинг-зал" ] %} {% for i
-  in range(button_names|length) %}
-  <button
-    type="button"
-    class="button"
-    data-toggle="modal"
-    data-target="#bookingModal{{ i + 1 }}"
-    data-room-number="{{ i + 1 }}"
-  >
-    {{ button_names[i] }}
-  </button>
-  {% endfor %}
-</div>
+<div class="row">
+  <div class="col-lg-9">
+    <div class="button-container-names">
+      {% set button_names = [ "Конференц-зал", "Компьютерный зал", "Зал для
+      презентаций", "Аудитория", "Мультимедийный зал", "Тренинг-зал" ] %} {% for
+      i in range(button_names|length) %}
+      <button
+        type="button"
+        class="button"
+        data-toggle="modal"
+        data-target="#bookingModal{{ i }}"
+        data-room-number="{{ i }}"
+      >
+        {{ button_names[i] }}
+      </button>
+      {% endfor %}
+    </div>
 
-<div class="my-rooms">
-  <h4>Мои забронированные комнаты:</h4>
-  {% if myRooms %}
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Зал</th>
-          <th>Начало</th>
-          <th>Окончание</th>
-          <th>Имя бронирующего</th>
-          <th>Название мероприятия</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for room in myRooms %}
+    <div class="my-rooms">
+      <h4>Мои забронированные комнаты:</h4>
+      {% if myRooms %}
+      <table class="table">
+        <thead>
           <tr>
-            <td>{{ button_names[room.room_name - 1]}}</td>
+            <th>Зал</th>
+            <th>Начало</th>
+            <th>Окончание</th>
+            <th>Имя бронирующего</th>
+            <th>Название мероприятия</th>
+
+            <!-- Добавлен заголовок для столбца с кнопкой удаления -->
+          </tr>
+        </thead>
+        <tbody>
+          {% for room in myRooms %}
+          <tr>
+            <td>{{ button_names[room.roomNumber] }}</td>
             <td>{{ room.start_time }}</td>
             <td>{{ room.end_time }}</td>
             <td>{{ room.booked_by_name }}</td>
             <td>{{ room.event_name }}</td>
+            <td>
+              <form action="/cancel_book" method="DELETE" class="delete-form">
+                <input type="hidden" name="room_id" value="{{ room.id }}" />
+                <button type="submit" class="delete-button" style="background: none; border: none"> 
+                  <img
+                    width="25"
+                    height="25"
+                    src="../static/delete_icon.svg"
+                    alt="Delete Icon"
+                  />
+                </button>
+              </form>
+            </td>
           </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  {% else %}
-    <p>У вас нет забронированных комнат.</p>
-  {% endif %}
-</div>
-
-<!-- HTML-код модального окна -->
-{% for i in range(1, 7) %}
-<div
-  class="modal fade"
-  id="bookingModal{{ i }}"
-  tabindex="-1"
-  role="dialog"
-  aria-labelledby="bookingModalLabel{{ i }}"
-  aria-hidden="true"
->
-
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="bookingModalLabel{{ i }}">
-          Бронирование комнаты №{{ i }}
-        </h5>
-        <button
-          type="button"
-          class="close"
-          data-dismiss="modal"
-          aria-label="Close"
-        >
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <!-- Форма для заполнения данных бронирования -->
-        <form action="/book_room" method="POST">
-          <input type="hidden" name="roomNumber" value="{{ i }}" />
-          <div class="form-group">
-            <label for="title{{ i }}">Название</label>
-            <input
-              type="text"
-              class="form-control"
-              id="title{{ i }}"
-              name="title"
-              required
-            />
-          </div>
-          <div class="form-group">
-            <label for="startDate{{ i }}">Дата и время начала</label>
-            <input
-              type="datetime-local"
-              class="form-control"
-              id="startDate{{ i }}"
-              name="startDate"
-              required
-              min="{{ current_datetime.strftime('%Y-%m-%dT%H:%M') }}"
-              step="60"
-            />
-          </div>
-          <div class="form-group">
-            <label for="endDate{{ i }}">Дата и время окончания</label>
-            <input
-              type="datetime-local"
-              class="form-control"
-              id="endDate{{ i }}"
-              name="endDate"
-              required
-            />
-          </div>
-          <button type="submit" class="btn btn-primary">Забронировать</button>
-        </form>
-
-        <div id="bookingInfo{{ i }}">
-          <h4>Информация о бронировании:</h4>
-          <p>Текущая дата и время: <span id="currentDatetime"></span></p>
-          <p>Занятые временные интервалы:</p>
-          <ul id="occupiedTimes{{ i }}"></ul>
-        </div>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p>У вас нет забронированных комнат.</p>
+      {% endif %}
+    </div>
+    <div class="col-lg-3">
+      <div class="sticky-panel">
+        <h4>Служебки:</h4>
+        <div class="message-feed">{% include "messages.html" %}</div>
       </div>
     </div>
   </div>
 </div>
-{% endfor %}
-{% endblock %}
+{% include "booking.html" %} {% endblock %}
