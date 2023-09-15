@@ -1,15 +1,24 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from .models import User
 from werkzeug.security import generate_password_hash, check_password_hash
-from . import db  ##means from __init__.py import db
+from . import db  ## означает из __init__.py импортировать db
 from flask_login import login_user, login_required, logout_user, current_user
-
 
 auth = Blueprint("auth", __name__)
 
 
 @auth.route("/login", methods=["GET", "POST"])
 def login():
+    """
+    Регистрирует пользователя и выполняет вход в систему.
+
+    Args:
+        email (str): Электронная почта пользователя.
+        password (str): Пароль пользователя.
+
+    Returns:
+        Перенаправление на домашнюю страницу.
+    """
     if request.method == "POST":
         email = request.form.get("email")
         password = request.form.get("password")
@@ -31,12 +40,31 @@ def login():
 @auth.route("/logout")
 @login_required
 def logout():
+    """
+    Выходит из системы текущего пользователя.
+
+    Returns:
+        Перенаправление на страницу входа в систему.
+    """
     logout_user()
     return redirect(url_for("auth.login"))
 
 
 @auth.route("/sign_up", methods=["GET", "POST"])
 def sign_up():
+    """
+    Регистрирует нового пользователя.
+
+    Args:
+        email (str): Электронная почта пользователя.
+        first_name (str): Имя пользователя.
+        second_name (str): Фамилия пользователя.
+        password1 (str): Пароль пользователя.
+        password2 (str): Подтверждение пароля пользователя.
+
+    Returns:
+        Перенаправление на домашнюю страницу.
+    """
     if request.method == "POST":
         email = request.form.get("email")
         first_name = request.form.get("firstName")
