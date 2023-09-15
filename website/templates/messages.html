@@ -1,0 +1,37 @@
+<div class="message-container">
+  <ul class="message-list">
+    {% for message in allMessages %}
+    <li>
+      <div class="message-header">
+        <strong>{{ user.first_name }} {{ user.second_name }}</strong>
+        <span class="message-actions">
+          {% if message.author == current_user.id %}
+          <a href="/edit/{{ message.id }}" class="edit-button">
+            <button class="delete-button" style="background: none; border: none">
+              <img width="15" height="15" src="../static/edit_icon.svg" alt="Edit Icon" />
+            </button>
+          </a>
+          <a href="/delete/{{ message.id }}" class="delete-button">
+            <button class="delete-button" style="background: none; border: none">
+              <img width="15" height="15" src="../static/delete_icon.svg" alt="Delete Icon" />
+            </button>
+          </a>
+          {% endif %}
+        </span>
+      </div>
+
+      <div class="message-content">
+        <span> {{message.event_name}}</span>
+        <span class="room-name">{{ button_names[message.roomNum] }}</span>
+        <span class="timestamp">{{ message.creationDate }}</span>
+
+        {% if message.isDone %}
+        <span class="status-icon">✓</span>
+        {% else %}
+        <span class="status-icon">✗</span>
+        {% endif %}
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
