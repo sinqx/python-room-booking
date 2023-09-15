@@ -1,4 +1,4 @@
-.button-container {
+.button-container-names {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -25,10 +25,109 @@
   background-color: gray;
 }
 
+.message-header {
+  display: flex;
+  justify-content: space-between;
+}
+
+.delete-button {
+  background: none;
+  border: none;
+  margin-right: 10px;
+}
+
+.delete-button button,
+.edit-button button {
+  width: 15px;
+  height: 15px;
+  padding: 0;
+  background: none; 
+  border: none
+}
+
 .top-buttons {
   order: 1;
 }
 
 .bottom-buttons {
   order: 2;
+}
+
+.message-text {
+  word-wrap: break-word;
+}
+
+.sticky-panel {
+  position: fixed;
+  top: 56px;
+  right: 0;
+  width: 300px;
+  height: 100vh;
+  padding: 20px;
+  overflow-y: scroll;
+}
+
+.message-container {
+  border-left: 2px solid #ccc;
+  border-bottom: 2px solid #ccc;
+  padding-left: 10px;
+  margin-bottom: 10px;
+}
+
+.message-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.message-list li {
+  margin-bottom: 10px;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 10px;
+}
+
+.message-list li strong {
+  font-size: 14px;
+}
+
+.message-list li span.timestamp {
+  font-size: 12px;
+  color: #888;
+}
+
+.message-list li span.status-icon {
+  font-size: 12px;
+  margin-left: 5px;
+  color: #888;
+}
+
+.message-list li:last-child {
+  margin-bottom: 0;
+  border-bottom: none;
+}
+
+.message-feed {
+  direction: rtl;
+}
+
+.message-feed::-webkit-scrollbar {
+  width: 8px;
+}
+
+.message-feed::-webkit-scrollbar-track {
+  background-color: #f1f1f1;
+}
+
+.message-feed::-webkit-scrollbar-thumb {
+  background-color: #888;
+}
+
+.message-feed::-webkit-scrollbar-thumb:hover {
+  background-color: #555;
+}
+
+.svg-icon {
+  width: 15px;
+  height: 15px;
+  fill: #fff; /* Цвет заполнения иконки */
 }
