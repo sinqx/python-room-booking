@@ -2,8 +2,8 @@ from . import db
 from flask_login import UserMixin
 
 class User(db.Model, UserMixin):
-    id = db.Column(db.Integer, primary_key = True)
-    email = db.Column(db.String(30), unique = True, nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(30), unique=True, nullable=False)
     password = db.Column(db.String(300), nullable=False)
     first_name = db.Column(db.String(30), nullable=False)
     second_name = db.Column(db.String(30))
@@ -11,10 +11,21 @@ class User(db.Model, UserMixin):
     room = db.relationship('Room', backref='user')
     
 
+class Message(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    text = db.Column(db.String(250))
+    creationDate = db.Column(db.DateTime(timezone=True), nullable=False)
+  #  sentFrom = db.Column(db.Integer, db.ForeignKey('user.id'))
+   # sentTo= db.Column(db.String(40), nullable = False)
+    isDone = db.Column(db.Boolean, default=False)
+    roomId = db.Column(db.Integer, db.ForeignKey('room.id'))
+    
+
 class Room(db.Model):
-    id = db.Column(db.Integer, primary_key = True)
+    id = db.Column(db.Integer, primary_key=True)
     roomNumber = db.Column(db.Integer, nullable=False)
     conferenceTitle = db.Column(db.String(30))
     startDate = db.Column(db.DateTime(timezone=True), nullable=False)
     endDate = db.Column(db.DateTime(timezone=True), nullable=False)
+    message = db.relationship('Message', backref='room')
     userId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

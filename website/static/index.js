@@ -1,10 +1,8 @@
 // Получение информации о забронированных временных интервалах
 function roomInfo(roomNumber) {
- 
   fetch(`/roomInfo/?roomNumber=${roomNumber}`)
     .then((response) => response.json())
     .then((data) => {
-      
       const bookingInfo = data.occupied_times;
       const currentDatetime = new Date().toLocaleString();
       const bookingInfoContainer = document.querySelector(
@@ -15,7 +13,7 @@ function roomInfo(roomNumber) {
       const occupiedTimesElement = bookingInfoContainer.querySelector(
         `#occupiedTimes${roomNumber}`
       );
-      console.log(data.occupied_times)
+
       currentDatetimeElement.textContent = currentDatetime;
 
       if (bookingInfo.length > 0) {
@@ -44,7 +42,7 @@ document.querySelectorAll(".modal").forEach((modal) => {
   modal.addEventListener("show.bs.modal", (event) => {
     const button = event.relatedTarget;
     const roomNumber = button.getAttribute("data-room-number");
-    getBookingInfo(roomNumber);
+    roomInfo(roomNumber);
   });
 });
 

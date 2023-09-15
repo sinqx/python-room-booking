@@ -1,7 +1,17 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
+from flask import (
+    Blueprint,
+    render_template,
+    request,
+    flash,
+    redirect,
+    url_for,
+    jsonify,
+    session,
+)
 from flask_login import login_required, current_user
 from datetime import datetime, timedelta
 from sqlalchemy import and_, or_
+from .messages import new_message, get_all_messages, get_room_messages
 from .models import Room
 from . import db
 
@@ -11,22 +21,30 @@ rooms = Blueprint("rooms", __name__)
 @rooms.route("/", methods=["GET"])
 @login_required
 def home():
+    """
+    Отображает домашнюю страницу с информацией о забронированных комнатах пользователя.
+
+    Returns:
+        HTML-страница с информацией о забронированных комнатах.
+    """
     currentDatetime = datetime.now()
 
+    # Получение всех забронированных комнат пользователя, дата окончания которых позднее текущей даты
     my_rooms = Room.query.filter(
         Room.userId == current_user.id, Room.endDate > currentDatetime
     ).all()
-    print(my_rooms)
+
+    # Форматирование информации о забронированных комнатах в удобный для отображения вид
     myRooms = []
     for room in my_rooms:
         start_time = room.startDate.strftime("%Y-%m-%d -- %H:%M")
         end_time = room.endDate.strftime("%Y-%m-%d -- %H:%M")
-        room_name = room.roomNumber
+        roomNumber = room.roomNumber
         booked_by_name = f"{room.user.first_name} {room.user.second_name}"
         event_name = room.conferenceTitle
         myRooms.append(
             {
-                "room_name": room_name,
+                "roomNumber": roomNumber,
                 "start_time": start_time,
                 "end_time": end_time,
                 "booked_by_name": booked_by_name,
@@ -34,18 +52,36 @@ def home():
             }
         )
 
+    messages = get_all_messages()
+
     return render_template(
         "home.html",
         user=current_user,
         current_datetime=currentDatetime,
         myRooms=myRooms,
+        allMessages=messages,
     )
 
 
 @rooms.route("/roomInfo/", methods=["GET"])
 def get_room_info():
+    """
+    Возвращает информацию о забронированных временных слотах для указанной комнаты.
+
+    Args:
+        roomNumber (int): Номер комнаты.
+
+    Returns:
+        JSON-объект с информацией о забронированных временных слотах.
+    """
+    currentDatetime = datetime.now()
+
     room_number = int(request.args.get("roomNumber"))
-    booking_list = Room.query.filter((Room.roomNumber == room_number)).all()
+
+    # Получение списка бронирований для указанной комнаты, дата окончания которых позднее текущей даты
+    booking_list = Room.query.filter(
+        (Room.roomNumber == room_number), Room.endDate > currentDatetime
+    ).all()
 
     occupied_times = []
     for booking in booking_list:
@@ -62,19 +98,35 @@ def get_room_info():
             }
         )
 
-    return jsonify({"occupied_times": occupied_times})
+    room_messages = get_room_messages(
+        room_number
+    )  # Вызов функции get_room_messages() с передачей параметра
+
+    return jsonify({"occupied_times": occupied_times, "room_messages": room_messages})
 
 
 @rooms.route("/book_room", methods=["POST"])
 @login_required
 def book_room():
+    """
+    Бронирует комнату на указанный временной интервал.
+
+    Args:
+        roomNumber (str): Номер комнаты.
+        startDate (str): Дата и время начала бронирования в формате "%Y-%m-%dT%H:%M".
+        endDate (str): Дата и время окончания бронирования в формате "%Y-%m-%dT%H:%M".
+        title (str): Название конференции.
+
+    Returns:
+        Перенаправление на домашнюю страницу.
+    """
     room_number = request.form.get("roomNumber")
     start_date = datetime.strptime(request.form.get("startDate"), "%Y-%m-%dT%H:%M")
     end_date = datetime.strptime(request.form.get("endDate"), "%Y-%m-%dT%H:%M")
     conference_title = request.form.get("title")
 
-    if end_date - start_date > timedelta(hours=2):
-        flash("Нельзя бронировать зал более чем на 2 часа", category="error")
+    if end_date - start_date > timedelta(hours=24):
+        flash("Нельзя бронировать зал более чем на 24 часа", category="error")
     elif end_date < start_date + timedelta(minutes=15):
         flash("Нельзя бронировать зал менее чем на 15 минут", category="error")
     else:
@@ -111,24 +163,44 @@ def book_room():
             db.session.commit()
             flash("Комната успешно забронирована", category="success")
 
+            get_message = request.form.get("message")
+            session["message"] = get_message
+
+            if get_message:
+                new_message_url = url_for(
+                    "messages.new_message",
+                    booking_id=new_booking.id,
+                    message=get_message,
+                )
+            return redirect(new_message_url)
+
     return redirect(url_for("rooms.home"))
 
 
-@rooms.route("/cancel_book", methods=["PATCH", "DELETE"])
+@rooms.route("/cancel_book", methods=["DELETE"])
 @login_required
-def canlcel_book():
+def cancel_book():
+    """
+    Отменяет или завершает бронирование комнаты.
+
+    Args:
+        bookingId (str): Идентификатор бронирования.
+
+    Returns:
+        Перенаправление на домашнюю страницу.
+    """
     booking_id = request.args.get("bookingId")
     booked_room = Room.query.filter_by(id=booking_id).first()
 
     if booked_room.userId == current_user.id:
-        if request.method == "DELETE" and datetime.now() < booked_room.startDate:
+        if datetime.now() < booked_room.startDate:
             db.session.delete(booked_room)
-            flash("Бронь отменена")
-        elif request.method == "PATCH" and datetime.now() > booked_room.startDate:
+            flash("Бронь отменена", category="success")
+        elif datetime.now() > booked_room.startDate and datetime.now() < booked_room.endDate:
             booked_room.endDate = datetime.now()
-            flash("Бронь закончена")
+            flash("Бронь закончена", category="success")
         db.session.commit()
     else:
-        flash("Не вы бронировали комнату")
+        flash("Не вы бронировали комнату", category="error")
 
     return redirect(url_for("rooms.home"))
