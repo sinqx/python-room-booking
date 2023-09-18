@@ -41,8 +41,8 @@
   width: 15px;
   height: 15px;
   padding: 0;
-  background: none; 
-  border: none
+  background: none;
+  border: none;
 }
 
 .top-buttons {
@@ -124,6 +124,19 @@
 
 .message-feed::-webkit-scrollbar-thumb:hover {
   background-color: #555;
+}
+
+.message-header {
+  display: flex;
+  align-items: center;
+}
+
+.user-info {
+  margin-right: auto;
+}
+
+.message-actions {
+  margin-left: 10px;
 }
 
 .svg-icon {

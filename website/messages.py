@@ -17,7 +17,6 @@ def get_all_messages():
     messages = []
     for message in all_messages:
         message_dict = {
-            "text": message.text,
             "creationDate": message.creationDate.strftime("%Y-%m-%d %H:%M:%S"),
             "roomNum": message.room.roomNumber,
             "event_name": message.room.conferenceTitle,

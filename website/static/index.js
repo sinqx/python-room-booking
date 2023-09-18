@@ -1,4 +1,3 @@
-// Получение информации о забронированных временных интервалах
 function roomInfo(roomNumber) {
   fetch(`/roomInfo/?roomNumber=${roomNumber}`)
     .then((response) => response.json())
@@ -56,6 +55,28 @@ document.addEventListener("DOMContentLoaded", function () {
     button.addEventListener("click", function () {
       var roomNumber = button.getAttribute("data-room-number");
       roomInfo(roomNumber);
+    });
+  });
+
+  // Получаем все сообщения
+  var messages = document.querySelectorAll(".message");
+
+  // Добавляем обработчик событий к каждому сообщению
+  messages.forEach(function (message) {
+    message.addEventListener("click", function (event) {
+      var modal = event.currentTarget.getAttribute("data-target");
+      var modalInstance = new bootstrap.Modal(modal);
+      modalInstance.show();
+
+      fetch("createMsg.html")
+        .then((response) => response.text())
+        .then((html) => {
+          var modalContent = document.querySelector(modal + " .modal-content");
+          modalContent.innerHTML = html;
+        })
+        .catch((error) => {
+          console.error("Ошибка:", error);
+        });
     });
   });
 });
