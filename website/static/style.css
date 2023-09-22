@@ -30,26 +30,15 @@
   justify-content: space-between;
 }
 
-.delete-button {
-  background: none;
-  border: none;
+.delete-button.top-buttons {
   margin-right: 10px;
-}
-
-.delete-button button,
-.edit-button button {
-  width: 15px;
-  height: 15px;
-  padding: 0;
-  background: none;
-  border: none;
-}
-
-.top-buttons {
+  margin-bottom: 5px;
   order: 1;
 }
 
-.bottom-buttons {
+.delete-button.bottom-buttons {
+  margin-right: 10px;
+  margin-top: 5px;
   order: 2;
 }
 
@@ -66,7 +55,6 @@
   padding: 20px;
   overflow-y: scroll;
 }
-
 .message-container {
   border-left: 2px solid #ccc;
   border-bottom: 2px solid #ccc;
@@ -107,7 +95,7 @@
 }
 
 .message-feed {
-  direction: rtl;
+  direction: ltr;
 }
 
 .message-feed::-webkit-scrollbar {

@@ -20,7 +20,8 @@ def get_all_messages():
             "creationDate": message.creationDate.strftime("%Y-%m-%d %H:%M:%S"),
             "roomNum": message.room.roomNumber,
             "event_name": message.room.conferenceTitle,
-            "author":message.room.user.id
+            "author":message.room.user.id,
+            "mainText": message.text
         }
         
         messages.append(message_dict)

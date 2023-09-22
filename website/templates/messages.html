@@ -1,82 +1,119 @@
-<div class="message-container">
-  <ul class="message-list">
+<div class="sticky-panel">
+  <h4>Служебки:</h4>
+  <div class="message-feed">
     {% for message in allMessages %}
-    <li>
-      <div class="message-header">
-        <div class="message-actions">
-          {% if message.author == current_user.id %}
-          <a href="/edit/{{ message.id }}" class="edit-button">
+    <div class="message-container">
+      <ul class="message-list">
+        <li>
+          <div class="message-header">
+            <div class="message-actions"></div>
+          </div>
+          <div class="message-content">
             <button
-              class="delete-button"
-              style="background: none; border: none"
+              class="message-button"
+              data-toggle="modal"
+              data-target="#myModal{{ message.id }}"
+              data-message="{{ message | tojson }}"
             >
-              <img
-                width="15"
-                height="15"
-                src="../static/edit_icon.svg"
-                alt="Edit Icon"
-              />
+              <div class="user-info">
+                <strong>{{ user.first_name }} {{ user.second_name }}</strong>
+              </div>
+              <span>{{ message.event_name }}</span>
+              <br />
+              <span class="timestamp">{{ message.creationDate }}</span>
+              {% if message.isDone %}
+              <span class="status-icon">✓</span>
+              {% else %}
+              <span class="status-icon">✗</span>
+              {% endif %}
             </button>
-          </a>
-          <a href="/delete/{{ message.id }}" class="delete-button">
-            <button
-              class="delete-button"
-              style="background: none; border: none"
-            >
-              <img
-                width="15"
-                height="15"
-                src="../static/delete_icon.svg"
-                alt="Delete Icon"
-              />
-            </button>
-          </a>
-          {% endif %}
-        </div>
-        <div class="user-info">
-          <strong>{{ user.first_name }} {{ user.second_name }}</strong>
-        </div>
-      </div>
+          </div>
+        </li>
+      </ul>
+    </div>
+    {% endfor %}
+  </div>
+</div>
 
-      <div class="message-content">
+<!-- Модальные окна для каждого сообщения -->
+{% for message in allMessages %}
+<div
+  class="modal fade"
+  id="myModal{{ message.id }}"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="myModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Заполнение служебки: {{ message.mainText }}</h5>
         <button
-          class="message-button"
-          data-toggle="modal"
-          data-target="#myModal{{ message.id }}"
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
         >
-          <span> {{message.event_name}}</span>
-          <br />
-          <!-- <span class="room-name">{{ button_names[message.roomNum] }}</span> -->
-          <!-- <br> -->
-          <span class="timestamp">{{ message.creationDate }}</span>
-
-          {% if message.isDone %}
-          <span class="status-icon">✓</span>
-          {% else %}
-          <span class="status-icon">✗</span>
-          {% endif %}
+          <span aria-hidden="true">&times;</span>
         </button>
       </div>
-
-      <!-- Модальное окно для каждого сообщения -->
-      <div
-        class="modal fade"
-        id="myModal{{ message.id }}"
-        tabindex="-1"
-        role="dialog"
-        aria-labelledby="myModalLabel"
-        aria-hidden="true"
-      >
-        <!-- Содержимое модального окна -->
-        <div class="modal-dialog" role="document">
-          <div class="modal-content">
-            <div class="modal-body">
-              <div class="modal-header">{% include "createMsg.html" %}
-            </div>
-          </div>
-        </div>
+      <div class="modal-body d-flex justify-content-center align-items-center">
+        {% include "createMsg.html" %}
       </div>
-    </li>
-    {% endfor %}
-  </ul>
+      <div class="modal-footer">
+        {% if message.author == current_user.id %}
+        <a href="/edit/{{ message.id }}" class="edit-button">
+          <button class="delete-button" style="background: none; border: none">
+            <img
+              width="15"
+              height="15"
+              src="../static/edit_icon.svg"
+              alt="Edit Icon"
+            />
+          </button>
+        </a>
+        <a href="/delete/{{ message.id }}" class="delete-button">
+          <button class="delete-button" style="background: none; border: none">
+            <img
+              width="15"
+              height="15"
+              src="../static/delete_icon.svg"
+              alt="Delete Icon"
+            />
+          </button>
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
 </div>
+{% endfor %}
+
+<script>
+  // Обработчик события при открытии модального окна
+  document.querySelectorAll(".modal").forEach((modal) => {
+    modal.addEventListener("show.bs.modal", (event) => {
+      const button = event.relatedTarget;
+      const messageJSON = button.getAttribute("data-message");
+      const message = JSON.parse(messageJSON);
+
+      const modalTitle = modal.querySelector(".modal-title");
+      const modalBody = modal.querySelector(".modal-body");
+
+      modalTitle.textContent = "Заполнение служебки: " + message.mainText;
+      modalBody.innerHTML = ""; // Очищаем содержимое модального окна
+
+      // Здесь вы можете добавить нужные элементы и данные сообщения в modalBody
+      // Например:
+      const messageInfo = document.createElement("p");
+      messageInfo.textContent = "Информация о сообщении:";
+      modalBody.appendChild(messageInfo);
+
+      const messageContent = document.createElement("p");
+      messageContent.textContent = message.content;
+      modalBody.appendChild(messageContent);
+
+    });
+  });
+</script>

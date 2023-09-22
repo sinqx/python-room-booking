@@ -1,5 +1,6 @@
 {% extends "base.html" %} {% block title %}Home{% endblock %} {% block content
 %}
+
 <div class="row">
   <div class="col-lg-9">
     <div class="button-container-names">
@@ -18,6 +19,8 @@
       {% endfor %}
     </div>
 
+    {% include "messages.html" %} {% include "booking.html" %}
+
     <div class="my-rooms">
       <h4>Мои забронированные комнаты:</h4>
       {% if myRooms %}
@@ -29,7 +32,7 @@
             <th>Окончание</th>
             <th>Имя бронирующего</th>
             <th>Название мероприятия</th>
-
+            <th></th>
             <!-- Добавлен заголовок для столбца с кнопкой удаления -->
           </tr>
         </thead>
@@ -44,7 +47,11 @@
             <td>
               <form action="/cancel_book" method="DELETE" class="delete-form">
                 <input type="hidden" name="room_id" value="{{ room.id }}" />
-                <button type="submit" class="delete-button" style="background: none; border: none"> 
+                <button
+                  type="submit"
+                  class="delete-button"
+                  style="background: none; border: none"
+                >
                   <img
                     width="25"
                     height="25"
@@ -62,12 +69,6 @@
       <p>У вас нет забронированных комнат.</p>
       {% endif %}
     </div>
-    <div class="col-lg-3">
-      <div class="sticky-panel">
-        <h4>Служебки:</h4>
-        <div class="message-feed">{% include "messages.html" %}</div>
-      </div>
-    </div>
-  </div>
+  </div>  
 </div>
-{% include "booking.html" %} {% endblock %}
+{% endblock %}
