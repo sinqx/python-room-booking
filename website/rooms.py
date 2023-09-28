@@ -11,7 +11,7 @@ from flask import (
 from flask_login import login_required, current_user
 from datetime import datetime, timedelta
 from sqlalchemy import and_, or_
-from .messages import new_message, get_all_messages, get_room_messages
+from .messages import get_all_messages
 from .models import Room
 from . import db
 
@@ -40,7 +40,7 @@ def home():
         start_time = room.startDate.strftime("%Y-%m-%d -- %H:%M")
         end_time = room.endDate.strftime("%Y-%m-%d -- %H:%M")
         roomNumber = room.roomNumber
-        booked_by_name = f"{room.user.first_name} {room.user.second_name}"
+        booked_by_name = f"{room.user.firstName} {room.user.secondName}"
         event_name = room.conferenceTitle
         myRooms.append(
             {
@@ -87,7 +87,7 @@ def get_room_info():
     for booking in booking_list:
         start_time = booking.startDate.strftime("%Y-%m-%dT%H:%M")
         end_time = booking.endDate.strftime("%Y-%m-%dT%H:%M")
-        booking_name = f"{booking.user.first_name} {booking.user.second_name}"
+        booking_name = f"{booking.user.firstName} {booking.user.secondName}"
         event_name = booking.conferenceTitle
         occupied_times.append(
             {
@@ -98,11 +98,7 @@ def get_room_info():
             }
         )
 
-    room_messages = get_room_messages(
-        room_number
-    )  # Вызов функции get_room_messages() с передачей параметра
-
-    return jsonify({"occupied_times": occupied_times, "room_messages": room_messages})
+    return jsonify({"occupied_times": occupied_times})
 
 
 @rooms.route("/book_room", methods=["POST"])
@@ -124,6 +120,7 @@ def book_room():
     start_date = datetime.strptime(request.form.get("startDate"), "%Y-%m-%dT%H:%M")
     end_date = datetime.strptime(request.form.get("endDate"), "%Y-%m-%dT%H:%M")
     conference_title = request.form.get("title")
+    room_comment = request.form.get("comment")
 
     if end_date - start_date > timedelta(hours=24):
         flash("Нельзя бронировать зал более чем на 24 часа", category="error")
@@ -157,22 +154,12 @@ def book_room():
                 startDate=start_date,
                 endDate=end_date,
                 userId=current_user.id,
+                comment=room_comment,
             )
 
             db.session.add(new_booking)
             db.session.commit()
             flash("Комната успешно забронирована", category="success")
-
-            get_message = request.form.get("message")
-            session["message"] = get_message
-
-            if get_message:
-                new_message_url = url_for(
-                    "messages.new_message",
-                    booking_id=new_booking.id,
-                    message=get_message,
-                )
-            return redirect(new_message_url)
 
     return redirect(url_for("rooms.home"))
 

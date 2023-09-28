@@ -69,6 +69,7 @@ def sign_up():
         email = request.form.get("email")
         first_name = request.form.get("firstName")
         second_name = request.form.get("secondName")
+        surname = request.form.get("surname")
         password1 = request.form.get("password1")
         password2 = request.form.get("password2")
 
@@ -90,8 +91,9 @@ def sign_up():
         else:
             new_user = User(
                 email=email,
-                first_name=first_name,
-                second_name=second_name,
+                firstName=first_name,
+                secondName=second_name,
+                surname=surname,
                 password=generate_password_hash(password1, method="sha256"),
                 role="user",
             )

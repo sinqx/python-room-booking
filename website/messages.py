@@ -12,76 +12,73 @@ def get_all_messages():
     start_date = datetime(
         datetime.now().year, datetime.now().month, datetime.now().day, 0, 0
     )
-    
-    all_messages = Message.query.filter(Message.creationDate > start_date).all() 
+    author = (
+        f"{current_user.firstName} {current_user.secondName} {current_user.surname}"
+    )
+    all_messages = Message.query.filter(Message.creationDate > start_date).all()
     messages = []
     for message in all_messages:
         message_dict = {
-            "creationDate": message.creationDate.strftime("%Y-%m-%d %H:%M:%S"),
-            "roomNum": message.room.roomNumber,
-            "event_name": message.room.conferenceTitle,
-            "author":message.room.user.id,
-            "mainText": message.text
+            "messageId": message.id,
+            "creationDate": message.creationDate.strftime("%m-%d %H:%M:"),
+            "message_theme": message.messageTheme,
+            "author": author,
         }
-        
+
         messages.append(message_dict)
     # Преобразование объектов сообщений в словари или другой формат при необходимости
     return messages
 
 
-@messages.route("/get_room_messages", methods=["GET"])
-def get_room_messages(room_number):  # Добавление параметра room_number
-    current_datetime = datetime.now()
+@messages.route("/get_message_info", methods=["GET"])
+def get_message_info():
+    message_id = request.args.get("messageId")
+    print(message_id)
+    if not message_id:
+        flash("Неверный запрос", category="error")
+        return redirect(url_for("rooms.home"))
 
-    booked_room = Room.query.filter(
-        Room.roomNumber == room_number, Room.endDate >= current_datetime
-    ).first()
-
-    if booked_room is None:
-        return jsonify({"error": "Room not found or booking has ended"})
-
-    room_messages = Message.query.filter(
-        Message.roomId == booked_room.id,
-        Message.creationDate >= booked_room.startDate,
-        Message.creationDate <= current_datetime,
-    ).all()
-
-    messages = []
-    for message in room_messages:
-        message_dict = {
-            "text": message.text,
-            "creationDate": message.creationDate.strftime("%Y-%m-%d %H:%M:%S"),
-            "bookingId": message.roomId,
-        }
-        messages.append(message_dict)
-    # Преобразование объектов сообщений в словари или другой формат при необходимости
-    return messages  # Возвращение списка сообщений вместо jsonify()
+    messageInfo = Message.query.filter_by(id=message_id).first()
+    print("777777777777777777777")
+    print(jsonify({messageInfo}))
+    return jsonify({"message": messageInfo})
 
 
 @messages.route("/new_message", methods=["GET", "POST"])
 @login_required
 def new_message():
-    booking_id = request.args.get("booking_id")
-    booked_room = Room.query.get(booking_id)
+    data = request.get_json()
 
-    print(booked_room.userId)
-    print(current_user.id)
+    main_text = data.get("mainText")
+    message_theme = data.get("messageTheme")
+    sent_to = data.get("sentTo")
+    sent_to_head = data.get("sentToHead")
+    user_position = data.get("userPosition")
+    user_initials = data.get("userInitials")
 
-    if booked_room.userId == current_user.id:
-        message = session.get("message")
-        session.pop("message", None)
+    if not all(
+        [main_text, message_theme, sent_to, sent_to_head, user_position, user_initials]
+    ):
+        return jsonify({"error": "Missing required fields"}), 400
 
-        if message and len(message) < 250:
-            new_message_obj = Message(
-                text=message,
-                creationDate=datetime.now(),
-                roomId=booking_id,
-            )
-            db.session.add(new_message_obj)
-            db.session.commit()
-            flash("Сообщение добавлено.", category="success")
-        else:
-            flash("Не удалось добавить сообщение", category="error")
+    author = (
+        f"{current_user.firstName} {current_user.secondName} {current_user.surname}"
+    )
+
+    new_message = Message(
+        mainText=main_text,
+        messageTheme=message_theme,
+        creationDate=datetime.now(),
+        sentFrom=author,
+        sentTo=sent_to,
+        sentToHead=sent_to_head,
+        userPosition=user_position,
+        userInitials=user_initials,
+        isViewed=False,
+    )
+
+    db.session.add(new_message)
+    db.session.commit()
     return redirect(url_for("rooms.home"))
 
 
@@ -91,11 +88,11 @@ def edit_message():
     message_id = request.args.get("messageId")
     edited_message = Message.query.filter(Message.id == message_id).first()
 
-    if edited_message and edited_message.user_id == current_user.id:
+    if edited_message and edited_message.user.id == current_user.id:
         message = request.form.get("message")
 
-        if len(message) < 250:
-            edited_message.text = message
+        if len(message.text) < 650:
+            edited_message = message
             edited_message.creationDate = datetime.now()
 
             db.session.commit()
@@ -123,7 +120,7 @@ def message_is_done():
         flash("Сообщение не найдено", category="error")
         return redirect(url_for("messages.home"))
 
-    if edited_message.room.userId != current_user.id:
+    if edited_message.user.id != current_user.id:
         flash("Сообщение не принадлежит вам", category="error")
         return redirect(url_for("messages.home"))
 
@@ -146,7 +143,7 @@ def delete_message():
 
     delete_message = Message.query.filter(Message.id == message_id).first()
 
-    if delete_message and delete_message.user_id == current_user.id:
+    if delete_message and delete_message.user.id == current_user.id:
         db.session.delete(delete_message)
         db.session.commit()
         flash("Сообщение удалено", category="success")
