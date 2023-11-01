@@ -7,8 +7,6 @@ function roomInfo(roomNumber) {
       const bookingInfoContainer = document.querySelector(
         `#bookingInfo${roomNumber}`
       );
-      const currentDatetimeElement =
-        bookingInfoContainer.querySelector("#currentDatetime");
       const occupiedTimesElement = bookingInfoContainer.querySelector(
         `#occupiedTimes${roomNumber}`
       );  
@@ -65,7 +63,6 @@ document.addEventListener("DOMContentLoaded", function () {
   // Добавляем обработчик событий к каждой кнопке зала
   roomInfoButton.forEach(function (button) {
     button.addEventListener("click", function () {
-      console.log("9999999999999999999999");
       var roomNumber = button.getAttribute("data-room-number");
       roomInfo(roomNumber);
     });
@@ -74,8 +71,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const messageButtons = document.querySelectorAll(".message-button");
   messageButtons.forEach(function (button) {
     button.addEventListener("click", function () {
-      const messageId = this.dataset.messageId;
-      console.log("8888888888888888888888888888")
+      const messageId = this.dataset.messageId;   
       console.log(messageId)
       messageInfo(messageId)
     });
