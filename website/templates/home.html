@@ -1,12 +1,12 @@
 {% extends "base.html" %} {% block title %}Home{% endblock %} {% block content
 %}
 
-<div class="row">
-  <div class="col-lg-9">
-    <div class="button-container-names">
-      {% set button_names = [ "Конференц-зал", "Компьютерный зал", "Зал для
-      презентаций", "Аудитория", "Мультимедийный зал", "Тренинг-зал" ] %} {% for
-      i in range(button_names|length) %}
+<div class="buttons_container">
+  {% set button_names = [ "Конференц-зал", "Компьютерный зал", "Зал для
+      презентаций", "Аудитория", "Мультимедийный зал", "Тренинг-зал" ] %} {% for i
+      in range(button_names|length) %}
+    <div class="button_item">
+      
       <button
         type="button"
         class="button"
@@ -16,59 +16,70 @@
       >
         {{ button_names[i] }}
       </button>
-      {% endfor %}
+      <div id="bookingInfo{{ i }}">
+        <h4>Информация о бронировании:</h4>
+        <p>Занятые временные интервалы:</p>
+        <ul id="occupiedTimes{{ i }}"></ul>
+      </div>
     </div>
+  {% endfor %}
+  </div>
+  
 
-    {% include "messages.html" %} {% include "booking.html" %}
 
-    <div class="my-rooms">
-      <h4>Мои забронированные комнаты:</h4>
-      {% if myRooms %}
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Зал</th>
-            <th>Начало</th>
-            <th>Окончание</th>
-            <th>Имя бронирующего</th>
-            <th>Название мероприятия</th>
-            <th></th>
-            <!-- Добавлен заголовок для столбца с кнопкой удаления -->
-          </tr>
-        </thead>
-        <tbody>
-          {% for room in myRooms %}
-          <tr>
-            <td>{{ button_names[room.roomNumber] }}</td>
-            <td>{{ room.start_time }}</td>
-            <td>{{ room.end_time }}</td>
-            <td>{{ room.booked_by_name }}</td>
-            <td>{{ room.event_name }}</td>
-            <td>
-              <form action="/cancel_book" method="DELETE" class="delete-form">
-                <input type="hidden" name="room_id" value="{{ room.id }}" />
-                <button
-                  type="submit"
-                  class="delete-button"
-                  style="background: none; border: none"
-                >
-                  <img
-                    width="25"
-                    height="25"
-                    src="../static/delete_icon.svg"
-                    alt="Delete Icon"
-                  />
-                </button>
-              </form>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <p>У вас нет забронированных комнат.</p>
-      {% endif %}
+<div class="col-xs-12">
+  <div class="row">
+    {% include "booking.html" %}
+    <div class="container">
+      <div class="my-rooms">
+        <h4>Мои забронированные комнаты:</h4>
+        {% if myRooms %}
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Зал</th>
+              <th>Начало</th>
+              <th>Окончание</th>
+              <th>ФИО бронирующего</th>
+              <th>Название мероприятия</th>
+              <th></th>
+              <!-- Добавлен заголовок для столбца с кнопкой удаления -->
+            </tr>
+          </thead>
+          <tbody>
+            {% for room in myRooms %}
+            <tr>
+              <td>{{ button_names[room.roomNumber] }}</td>
+              <td>{{ room.start_time }}</td>
+              <td>{{ room.end_time }}</td>
+              <td>{{ room.booked_by_name }}</td>
+              <td>{{ room.event_name }}</td>
+              <td>
+                <form action="/cancel_book" method="DELETE" class="delete-form">
+                  <input type="hidden" name="room_id" value="{{ room.id }}" />
+                  <button
+                    type="submit"
+                    class="delete-button"
+                    style="background: none; border: none"
+                  >
+                    <img
+                      width="25"
+                      height="25"
+                      src="../static/delete_icon.svg"
+                      alt="Delete Icon"
+                    />
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p>У вас нет забронированных комнат.</p>
+        {% endif %}
+      </div>
     </div>
-  </div>  
+  </div>
 </div>
 {% endblock %}
