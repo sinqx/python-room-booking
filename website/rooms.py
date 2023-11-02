@@ -6,11 +6,10 @@ from flask import (
     redirect,
     url_for,
     jsonify,
-    session,
 )
 from flask_login import login_required, current_user
 from datetime import datetime, timedelta
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, or_, Date
 from .messages import get_all_messages
 from .models import Room
 from . import db
@@ -33,6 +32,7 @@ def home():
     my_rooms = Room.query.filter(
         Room.userId == current_user.id, Room.endDate > currentDatetime
     ).all()
+    
 
     # Форматирование информации о забронированных комнатах в удобный для отображения вид
     myRooms = []
@@ -51,7 +51,6 @@ def home():
                 "event_name": event_name,
             }
         )
-
     messages = get_all_messages()
 
     return render_template(
@@ -66,27 +65,35 @@ def home():
 @rooms.route("/roomInfo/", methods=["GET"])
 def get_room_info():
     """
-    Возвращает информацию о забронированных временных слотах для указанной комнаты.
+    Возвращает информацию о забронированных временных слотах для указанной комнаты в указанное число.
 
     Args:
         roomNumber (int): Номер комнаты.
+         reservationDate (datetime): Дата брони.
+
 
     Returns:
         JSON-объект с информацией о забронированных временных слотах.
     """
-    currentDatetime = datetime.now()
 
     room_number = int(request.args.get("roomNumber"))
+    print(
+        "--------------------------------"
+    )
+    reservation_date_str = str(request.args.get("reservationDate"))
+    reservation_date = datetime.strptime(
+        reservation_date_str, "%Y-%m-%dT%H:%M:%S.%fZ"
+    ).date()
 
-    # Получение списка бронирований для указанной комнаты, дата окончания которых позднее текущей даты
     booking_list = Room.query.filter(
-        (Room.roomNumber == room_number), Room.endDate > currentDatetime
+        (Room.roomNumber == room_number),
+        Room.endDate.cast(Date)  == reservation_date,
     ).all()
 
     occupied_times = []
     for booking in booking_list:
-        start_time = booking.startDate.strftime("%Y-%m-%dT%H:%M")
-        end_time = booking.endDate.strftime("%Y-%m-%dT%H:%M")
+        start_time = booking.startDate.strftime("%Y-%m-%d%H:%M")
+        end_time = booking.endDate.strftime("%Y-%m-%d%H:%M")
         booking_name = f"{booking.user.firstName} {booking.user.secondName}"
         event_name = booking.conferenceTitle
         occupied_times.append(
@@ -97,7 +104,7 @@ def get_room_info():
                 "event_name": event_name,
             }
         )
-
+    
     return jsonify({"occupied_times": occupied_times})
 
 
@@ -183,7 +190,10 @@ def cancel_book():
         if datetime.now() < booked_room.startDate:
             db.session.delete(booked_room)
             flash("Бронь отменена", category="success")
-        elif datetime.now() > booked_room.startDate and datetime.now() < booked_room.endDate:
+        elif (
+            datetime.now() > booked_room.startDate
+            and datetime.now() < booked_room.endDate
+        ):
             booked_room.endDate = datetime.now()
             flash("Бронь закончена", category="success")
         db.session.commit()
