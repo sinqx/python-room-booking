@@ -5,7 +5,6 @@ async function roomInfo(roomNumber, reservationDate) {
     );
     const data = await response.json();
     const bookingInfo = data.occupied_times;
-    const currentDatetime = reservationDate;
     const bookingInfoContainer = document.querySelector(
       `#bookingInfo${roomNumber}`
     );
@@ -18,16 +17,54 @@ async function roomInfo(roomNumber, reservationDate) {
     if (bookingInfo.length > 0) {
       bookingInfo.forEach((booking) => {
         const occupiedTime = document.createElement("li");
-        occupiedTime.innerHTML = `
-          <strong> ${booking.event_name}</strong><br>
-          Начало: ${booking.start_time},<br>
-           Конец: ${booking.end_time}<br>
-          Имя пользователя: ${booking.booking_name}<br>
-       
-        `;
-        if (booking.comment != null) {
-          occupiedTime.innerHTML += `Комментарий: ${booking.comment} <br>`;
+
+        const startTime = new Date(booking.start_time);
+        const endTime = new Date(booking.end_time);
+
+        const formattedDate = new Intl.DateTimeFormat("ru-RU", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        }).format(startTime);
+
+        const formattedStartTime = new Intl.DateTimeFormat("ru-RU", {
+          hour: "numeric",
+          minute: "numeric",
+        }).format(startTime);
+
+        const formattedEndTime = new Intl.DateTimeFormat("ru-RU", {
+          hour: "numeric",
+          minute: "numeric",
+        }).format(endTime);
+
+        const currentDateTime = new Date();
+
+        const timeRange = document.createElement("span");
+        timeRange.innerHTML = `${formattedStartTime} - ${formattedEndTime}`;
+
+        if (currentDateTime >= startTime && currentDateTime <= endTime) {
+          timeRange.style.backgroundColor = "orange";
+        } else if (currentDateTime > endTime) {
+          timeRange.style.backgroundColor = "red";
+        } else {
+          timeRange.style.backgroundColor = "green";
         }
+
+        timeRange.style.borderRadius = "30px";
+        timeRange.style.padding = "3px";
+        timeRange.style.color = "white";
+        timeRange
+        occupiedTime.innerHTML = `
+          <strong>${booking.event_name}</strong><br>
+          Продолжительность:<br>
+          ${timeRange.outerHTML}<br>
+          Забронированно на: <br> ${booking.booking_name}<br>
+        `;
+
+        if (booking.comment != null) {
+          occupiedTime.innerHTML += `Комментарий: ${booking.comment}<br>`;
+        }
+
         occupiedTimesElement.appendChild(occupiedTime);
       });
     } else {
