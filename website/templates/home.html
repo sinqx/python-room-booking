@@ -32,54 +32,5 @@
 </div>
 
 {% include "booking.html" %}
-<div class="container">
-  <div class="my-rooms">
-    <h4>Мои забронированные комнаты:</h4>
-    {% if myRooms %}
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Зал</th>
-          <th>Начало</th>
-          <th>Окончание</th>
-          <th>ФИО бронирующего</th>
-          <th>Название мероприятия</th>
-          <th></th>
-          <!-- Добавлен заголовок для столбца с кнопкой удаления -->
-        </tr>
-      </thead>
-      <tbody>
-        {% for room in myRooms %}
-        <tr>
-          <td>{{ button_names[room.roomNumber] }}</td>
-          <td>{{ room.start_time }}</td>
-          <td>{{ room.end_time }}</td>
-          <td>{{ room.booked_by_name }}</td>
-          <td>{{ room.event_name }}</td>
-          <td>
-            <form action="/cancel_book" method="DELETE" class="delete-form">
-              <input type="hidden" name="room_id" value="{{ room.id }}" />
-              <button
-                type="submit"
-                class="delete-button"
-                style="background: none; border: none"
-              >
-                <img
-                  width="25"
-                  height="25"
-                  src="../static/delete_icon.svg"
-                  alt="Delete Icon"
-                />
-              </button>
-            </form>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    {% else %}
-    <p>У вас нет забронированных комнат.</p>
-    {% endif %}
-  </div>
-</div>
+
 {% endblock %}
