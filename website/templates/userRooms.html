@@ -1,9 +1,12 @@
-{% extends "base.html" %} {% block title %} userRooms {% endblock %} {% block
-  content %} 
-<div class="container">
+{% extends "base.html" %} {% block title %}User rooms{% endblock %} {% block
+content %}
+<div class="buttons_container">
   {% set button_names = [ "Конференц-зал", "Компьютерный зал", "Зал для
-  презентаций", "Аудитория", "Мультимедийный зал", "Тренинг-зал" ] %} {% for i in
-range(button_names|length) %}
+  презентаций", "Аудитория", "Мультимедийный зал", "Тренинг-зал" ] %} {% for i
+  in range(button_names|length) %} {% endfor %}
+</div>
+
+<div class="container">
   <div class="my-rooms">
     <h4>Мои забронированные комнаты:</h4>
     {% if myRooms %}
@@ -12,9 +15,9 @@ range(button_names|length) %}
         <tr>
           <th>Зал</th>
           <th>Начало</th>
-          <th>Окончание</th>
-          <th>ФИО бронирующего</th>
+          <th>Конец</th>
           <th>Название мероприятия</th>
+          <th>Статус</th>
           <th></th>
           <!-- Добавлен заголовок для столбца с кнопкой удаления -->
         </tr>
@@ -23,12 +26,13 @@ range(button_names|length) %}
         {% for room in myRooms %}
         <tr>
           <td>{{ button_names[room.roomNumber] }}</td>
-          <td>{{ room.start_time }}</td>
-          <td>{{ room.end_time }}</td>
-          <td>{{ room.booked_by_name }}</td>
-          <td>{{ room.event_name }}</td>
+          <td>{{ room.startDate.strftime("%Y-%m-%d %H:%M") }}</td>
+          <td>{{ room.endDate.strftime("%Y- %m-%d %H:%M") }}</td>
+          <td>{{ room.conferenceTitle }}</td>
+          <td>{{ room.status }}</td>
           <td>
-            <form action="/cancel_book" method="DELETE" class="delete-form">
+            <form action="/cancel_book" method="POST" class="delete-form">
+              <input type="hidden" name="_method" value="DELETE" />
               <input type="hidden" name="room_id" value="{{ room.id }}" />
               <button
                 type="submit"
