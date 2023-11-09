@@ -2,12 +2,12 @@
 %}
 <div class="time_container">
   <h2>
-    Брони на <button class="time_button"id="prevDate"><</button> <span id="currentDate"></span>
+    Брони на <button class="time_button" id="prevDate"><</button>
+    <span id="currentDate"></span>
     <button class="time_button" id="nextDate">></button>
   </h2>
   <div class="button-group"></div>
 </div>
-
 <div class="buttons_container">
   {% set button_names = [ "Конференц-зал", "Компьютерный зал", "Зал для
   презентаций", "Аудитория", "Мультимедийный зал", "Тренинг-зал" ] %} {% for i
@@ -31,6 +31,4 @@
   {% endfor %}
 </div>
 
-{% include "booking.html" %}
-
-{% endblock %}
+{% include "booking.html" %} {% endblock %}
