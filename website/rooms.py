@@ -17,9 +17,9 @@ from . import db
 rooms = Blueprint("rooms", __name__)
 
 
-@rooms.route("/", methods=["GET"])
+@rooms.route("/userRooms", methods=["GET"])
 @login_required
-def home():
+def user_rooms():
     """
     Отображает домашнюю страницу с информацией о забронированных комнатах пользователя.
 
@@ -32,7 +32,6 @@ def home():
     my_rooms = Room.query.filter(
         Room.userId == current_user.id, Room.endDate > currentDatetime
     ).all()
-    
 
     # Форматирование информации о забронированных комнатах в удобный для отображения вид
     myRooms = []
@@ -54,7 +53,7 @@ def home():
     messages = get_all_messages()
 
     return render_template(
-        "home.html",
+        "userRooms.html",
         user=current_user,
         current_datetime=currentDatetime,
         myRooms=myRooms,
@@ -63,7 +62,7 @@ def home():
 
 
 @rooms.route("/roomInfo/", methods=["GET"])
-def get_room_info():
+def home():
     """
     Возвращает информацию о забронированных временных слотах для указанной комнаты в указанное число.
 
@@ -77,9 +76,6 @@ def get_room_info():
     """
 
     room_number = int(request.args.get("roomNumber"))
-    print(
-        "--------------------------------"
-    )
     reservation_date_str = str(request.args.get("reservationDate"))
     reservation_date = datetime.strptime(
         reservation_date_str, "%Y-%m-%dT%H:%M:%S.%fZ"
@@ -87,13 +83,13 @@ def get_room_info():
 
     booking_list = Room.query.filter(
         (Room.roomNumber == room_number),
-        Room.endDate.cast(Date)  == reservation_date,
+        Room.endDate.cast(Date) == reservation_date,
     ).all()
 
     occupied_times = []
     for booking in booking_list:
-        start_time = booking.startDate.strftime("%Y-%m-%d%H:%M")
-        end_time = booking.endDate.strftime("%Y-%m-%d%H:%M")
+        start_time = booking.startDate.strftime("%Y-%m-%d %H:%M")
+        end_time = booking.endDate.strftime("%Y-%m-%d %H:%M")
         booking_name = f"{booking.user.firstName} {booking.user.secondName}"
         event_name = booking.conferenceTitle
         occupied_times.append(
@@ -104,7 +100,7 @@ def get_room_info():
                 "event_name": event_name,
             }
         )
-    
+
     return jsonify({"occupied_times": occupied_times})
 
 
