@@ -8,68 +8,79 @@ from flask import (
     jsonify,
 )
 from flask_login import login_required, current_user
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import and_, or_, Date
-from .messages import get_all_messages
 from .models import Room
 from . import db
 
 rooms = Blueprint("rooms", __name__)
 
 
-@rooms.route("/userRooms", methods=["GET"])
+@rooms.route("/", methods=["GET"])
 @login_required
-def user_rooms():
+def home():
     """
-    Отображает домашнюю страницу с информацией о забронированных комнатах пользователя.
-
+    Отображает домашнюю страницу с информацией о забронированных комнатах и функцией брони.
     Returns:
         HTML-страница с информацией о забронированных комнатах.
     """
-    currentDatetime = datetime.now()
+    return render_template(
+        "home.html", user=current_user, current_datetime=datetime.now()
+    )
 
+
+@rooms.route("/userRooms", methods=["GET"])
+@login_required
+def userRooms():
+    """
+    Отображает домашнюю страницу с информацией о забронированных комнатах пользователя.
+    Returns:
+        HTML-страница с информацией о забронированных комнатах.
+    """
+    currentDatetime = datetime.now().strftime("%Y-%m-%d %H:%M")
     # Получение всех забронированных комнат пользователя, дата окончания которых позднее текущей даты
     my_rooms = Room.query.filter(
         Room.userId == current_user.id, Room.endDate > currentDatetime
     ).all()
 
-    # Форматирование информации о забронированных комнатах в удобный для отображения вид
-    myRooms = []
     for room in my_rooms:
-        start_time = room.startDate.strftime("%Y-%m-%d -- %H:%M")
-        end_time = room.endDate.strftime("%Y-%m-%d -- %H:%M")
-        roomNumber = room.roomNumber
-        booked_by_name = f"{room.user.firstName} {room.user.secondName}"
-        event_name = room.conferenceTitle
-        myRooms.append(
-            {
-                "roomNumber": roomNumber,
-                "start_time": start_time,
-                "end_time": end_time,
-                "booked_by_name": booked_by_name,
-                "event_name": event_name,
-            }
+        room_start = room.startDate.astimezone(room.startDate.tzinfo).strftime(
+            "%Y-%m-%d %H:%M"
         )
-    messages = get_all_messages()
+        room_end = room.endDate.astimezone(room.endDate.tzinfo).strftime(
+            "%Y-%m-%d %H:%M"
+        )
+
+        if currentDatetime >= room_start and currentDatetime < room_end:
+            room.status = "В процессе"
+        elif room_start > currentDatetime:
+            timeDifferent = datetime.strptime(
+                room_start, "%Y-%m-%d %H:%M"
+            ) - datetime.strptime(currentDatetime, "%Y-%m-%d %H:%M")
+            room.status = (
+                "Начало через "
+                + str(int(timeDifferent.total_seconds() / 60))
+                + " минут"
+            )
+        else:
+            room.status = "Мероприятие окончено"
 
     return render_template(
         "userRooms.html",
         user=current_user,
         current_datetime=currentDatetime,
-        myRooms=myRooms,
-        allMessages=messages,
+        myRooms=my_rooms,
     )
 
 
 @rooms.route("/roomInfo/", methods=["GET"])
-def home():
+def get_room_info():
     """
     Возвращает информацию о забронированных временных слотах для указанной комнаты в указанное число.
 
     Args:
         roomNumber (int): Номер комнаты.
          reservationDate (datetime): Дата брони.
-
 
     Returns:
         JSON-объект с информацией о забронированных временных слотах.
@@ -167,7 +178,7 @@ def book_room():
     return redirect(url_for("rooms.home"))
 
 
-@rooms.route("/cancel_book", methods=["DELETE"])
+@rooms.route("/cancel_book", methods=["POST", "DELETE"])
 @login_required
 def cancel_book():
     """
@@ -179,21 +190,26 @@ def cancel_book():
     Returns:
         Перенаправление на домашнюю страницу.
     """
-    booking_id = request.args.get("bookingId")
-    booked_room = Room.query.filter_by(id=booking_id).first()
+    if request.method == "POST" or request.method == "DELETE":
+        room_id = request.form.get("room_id")
+        print("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||")
+        print(room_id)
+        print("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||")
+        booked_room = Room.query.filter_by(id=room_id).first()
 
-    if booked_room.userId == current_user.id:
-        if datetime.now() < booked_room.startDate:
-            db.session.delete(booked_room)
-            flash("Бронь отменена", category="success")
-        elif (
-            datetime.now() > booked_room.startDate
-            and datetime.now() < booked_room.endDate
-        ):
-            booked_room.endDate = datetime.now()
-            flash("Бронь закончена", category="success")
-        db.session.commit()
-    else:
-        flash("Не вы бронировали комнату", category="error")
+        current_time = datetime.now().astimezone(booked_room.startDate.tzinfo)
+        if booked_room.userId == current_user.id:
+            if current_time < booked_room.startDate:
+                db.session.delete(booked_room)
+                flash("Бронь отменена", category="success")
+            elif (
+                current_time > booked_room.startDate
+                and current_time < booked_room.endDate
+            ):
+                booked_room.endDate = current_time
+                flash("Бронь закончена", category="success")
+            db.session.commit()
+        else:
+            flash("Вы можете отменять только свои брони", category="error")
 
     return redirect(url_for("rooms.home"))
