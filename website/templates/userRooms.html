@@ -18,7 +18,7 @@ content %}
           <th>Конец</th>
           <th>Название мероприятия</th>
           <th>Статус</th>
-          <th></th>
+          <th>Детали</th>
           <!-- Добавлен заголовок для столбца с кнопкой удаления -->
         </tr>
       </thead>
@@ -30,6 +30,14 @@ content %}
           <td>{{ room.endDate.strftime("%Y- %m-%d %H:%M") }}</td>
           <td>{{ room.conferenceTitle }}</td>
           <td>{{ room.status }}</td>
+          <td>
+            <div class="booking-details-container">
+              <details class="user-booking-details">
+                <summary>Детали</summary>
+                <p>{{room.comment}}</p>
+              </details>
+            </div>
+          </td>
           <td>
             <form action="/cancel_book" method="POST" class="delete-form">
               <input type="hidden" name="_method" value="DELETE" />

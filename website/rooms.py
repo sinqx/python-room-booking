@@ -103,12 +103,14 @@ def get_room_info():
         end_time = booking.endDate.strftime("%Y-%m-%d %H:%M")
         booking_name = f"{booking.user.firstName} {booking.user.secondName}"
         event_name = booking.conferenceTitle
+        event_comment = booking.comment
         occupied_times.append(
             {
                 "start_time": start_time,
                 "end_time": end_time,
                 "booking_name": booking_name,
                 "event_name": event_name,
+                "comment": event_comment,
             }
         )
 

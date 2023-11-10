@@ -53,16 +53,25 @@ async function roomInfo(roomNumber, reservationDate) {
         timeRange.style.borderRadius = "30px";
         timeRange.style.padding = "3px";
         timeRange.style.color = "white";
-        timeRange
+        timeRange;
         occupiedTime.innerHTML = `
           <strong>${booking.event_name}</strong><br>
           Продолжительность:<br>
           ${timeRange.outerHTML}<br>
           Забронированно на: <br> ${booking.booking_name}<br>
+          
         `;
-
         if (booking.comment != null) {
-          occupiedTime.innerHTML += `Комментарий: ${booking.comment}<br>`;
+          console.log(booking.comment);
+          occupiedTime.innerHTML += 
+          `<div class="booking-details-container">
+            <div class="booking-details">
+              <details>
+                <summary>Детали</summary>
+                <p>${booking.comment}</p>
+              </details>
+            </div>
+          </div><br>`
         }
 
         occupiedTimesElement.appendChild(occupiedTime);
@@ -76,6 +85,14 @@ async function roomInfo(roomNumber, reservationDate) {
   } catch (error) {
     console.error("Ошибка:", error);
   }
+}
+
+function showPopup() {
+  document.getElementById("popup").style.display = "block";
+}
+
+function hidePopup() {
+  document.getElementById("popup").style.display = "none";
 }
 
 function messageInfo(messageId) {
