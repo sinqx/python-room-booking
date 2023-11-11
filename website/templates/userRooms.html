@@ -10,7 +10,7 @@ content %}
   <div class="my-rooms">
     <h4>Мои забронированные комнаты:</h4>
     {% if myRooms %}
-    <table class="table">
+    <table class="table table-hover">
       <thead>
         <tr>
           <th>Зал</th>
@@ -24,45 +24,66 @@ content %}
       </thead>
       <tbody>
         {% for room in myRooms %}
-        <tr>
+        <tr class="mb-2">
           <td>{{ button_names[room.roomNumber] }}</td>
           <td>{{ room.startDate.strftime("%Y-%m-%d %H:%M") }}</td>
           <td>{{ room.endDate.strftime("%Y- %m-%d %H:%M") }}</td>
           <td>{{ room.conferenceTitle }}</td>
           <td>{{ room.status }}</td>
           <td>
-            <div class="booking-details-container">
-              <details class="user-booking-details">
-                <summary>Детали</summary>
-                <p>{{room.comment}}</p>
-              </details>
-            </div>
-          </td>
-          <td>
-            <form action="/cancel_book" method="POST" class="delete-form">
-              <input type="hidden" name="_method" value="DELETE" />
-              <input type="hidden" name="room_id" value="{{ room.id }}" />
-              <button
-                type="submit"
-                class="delete-button"
-                style="background: none; border: none"
-              >
-                <img
-                  width="25"
-                  height="25"
-                  src="../static/delete_icon.svg"
-                  alt="Delete Icon"
-                />
-              </button>
-            </form>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    {% else %}
-    <p>У вас нет забронированных комнат.</p>
-    {% endif %}
-  </div>
+            <button
+            type="button"
+            class="btn btn-xs btn-info"
+            data-bs-toggle="popover"
+            data-bs-title="Информация:"
+            data-bs-content="{{room.comment}}"
+            data-bs-placement="left"
+            >
+            Детали
+          </button>
+          
+          <!-- <button
+            type="button"
+            class="btn btn-lg btn-info"
+            data-bs-toggle="popover"
+            data-bs-title="Детали мероприятия"
+            data-bs-content="{{room.comment}}"
+            >
+            Детали
+          </button> -->
+          
+          <!-- <div class="booking-details-container">
+            <details class="user-booking-details">
+              <summary>Детали</summary>
+              <p>{{room.comment}}</p>
+            </details>
+          </div> -->
+        </td>
+        <td>
+          <form action="/cancel_book" method="POST" class="delete-form">
+            <input type="hidden" name="_method" value="DELETE" />
+            <input type="hidden" name="room_id" value="{{ room.id }}" />
+            <button
+            type="submit"
+            class="delete-button"
+            style="background: none; border: none"
+            >
+            <img
+            width="25"
+            height="25"
+            src="../static/delete_icon.svg"
+            alt="Delete Icon"
+            />
+          </button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>У вас нет забронированных комнат.</p>
+{% endif %}
+</div>
 </div>
 {% endblock %}
