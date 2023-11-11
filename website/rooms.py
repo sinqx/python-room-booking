@@ -17,7 +17,6 @@ rooms = Blueprint("rooms", __name__)
 
 
 @rooms.route("/", methods=["GET"])
-@login_required
 def home():
     """
     Отображает домашнюю страницу с информацией о забронированных комнатах и функцией брони.
