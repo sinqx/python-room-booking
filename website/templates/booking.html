@@ -16,7 +16,7 @@
         <button
           type="button"
           class="close"
-          data-dismiss="modal"
+          data-bs-dismiss="modal"
           aria-label="Close"
         >
           <span aria-hidden="true">&times;</span>
@@ -26,7 +26,7 @@
         <!-- Форма для заполнения данных бронирования -->
         <form action="/book_room" method="POST">
           <input type="hidden" name="roomNumber" value="{{ i }}" />
-          <div class="form-group">
+          <div class="form-group m-3">
             <label for="title{{ i }}">Название</label>
             <input
               type="text"
@@ -36,7 +36,7 @@
               required
             />
           </div>
-          <div class="form-group">
+          <div class="form-group m-3">
             <label for="startDate{{ i }}">Дата и время начала</label>
             <input
               type="datetime-local"
@@ -48,7 +48,7 @@
               step="60"
             />
           </div>
-          <div class="form-group">
+          <div class="form-group m-3">
             <label for="endDate{{ i }}">Дата и время окончания</label>
             <input
               type="datetime-local"
@@ -60,7 +60,7 @@
               step="60"
             />
           </div>
-          <div class="form-group">
+          <div class="form-group m-3">
             <label for="comment{{ i }}">Комментарий</label>
             <input
               type="text"
@@ -69,7 +69,7 @@
               name="comment"
             />
           </div>
-          <button type="submit" class="btn btn-primary">Забронировать</button>
+          <button type="submit" class="btn btn-primary  m-3">Забронировать</button>
         </form>
         <br></br>
       </div>
