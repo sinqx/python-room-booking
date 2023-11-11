@@ -21,11 +21,11 @@ async function roomInfo(roomNumber, reservationDate) {
         const startTime = new Date(booking.start_time);
         const endTime = new Date(booking.end_time);
 
-        const formattedDate = new Intl.DateTimeFormat("ru-RU", {
-          day: "numeric",
-          month: "long",
-          year: "numeric",
-        }).format(startTime);
+        // const formattedDate = new Intl.DateTimeFormat("ru-RU", {
+        //   day: "numeric",
+        //   month: "long",
+        //   year: "numeric",
+        // }).format(startTime);
 
         const formattedStartTime = new Intl.DateTimeFormat("ru-RU", {
           hour: "numeric",
@@ -64,14 +64,16 @@ async function roomInfo(roomNumber, reservationDate) {
         if (booking.comment != null) {
           console.log(booking.comment);
           occupiedTime.innerHTML += 
-          `<div class="booking-details-container">
-            <div class="booking-details">
-              <details>
-                <summary>Детали</summary>
-                <p>${booking.comment}</p>
-              </details>
-            </div>
-          </div><br>`
+          `<button
+          type="button"
+          class="btn btn-sm btn-secondary"
+          data-bs-toggle="popover"
+          data-bs-title="Информация:"
+          data-bs-content="${booking.comment}"
+          data-bs-placement="right"
+          >
+          Детали
+        </button>`
         }
 
         occupiedTimesElement.appendChild(occupiedTime);
@@ -79,20 +81,12 @@ async function roomInfo(roomNumber, reservationDate) {
     } else {
       const noBookingsMessage = document.createElement("p");
       noBookingsMessage.textContent =
-        "Нет забронированных временных интервалов.";
+        "Броней нет.";
       occupiedTimesElement.appendChild(noBookingsMessage);
     }
   } catch (error) {
     console.error("Ошибка:", error);
   }
-}
-
-function showPopup() {
-  document.getElementById("popup").style.display = "block";
-}
-
-function hidePopup() {
-  document.getElementById("popup").style.display = "none";
 }
 
 function messageInfo(messageId) {
@@ -167,4 +161,11 @@ document.addEventListener("DOMContentLoaded", function () {
   function updateCurrentDate() {
     currentDateElement.textContent = currentDate.toLocaleDateString();
   }
+});
+
+let popoverTriggerList = [].slice.call(
+  document.querySelectorAll('[data-bs-toggle="popover"]')
+);
+let popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+  return new bootstrap.Popover(popoverTriggerEl);
 });

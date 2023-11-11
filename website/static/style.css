@@ -1,3 +1,11 @@
+.my-rooms{
+  font-size: 120%;
+}
+
+.bookingInfo1{
+  padding: 5%;
+}
+
 .time_container{
   display: flex;
   flex-direction: column;
@@ -27,7 +35,7 @@
 .button {
   min-width: 250px;
   height: 100px;
-  margin-bottom: 10px;
+  margin: 10px;
   background-color: #fff;
   border-radius: 10px;
   text-align: center;
@@ -193,3 +201,5 @@
   min-width: 100px; 
   max-width: 200px;
 }
+
+
