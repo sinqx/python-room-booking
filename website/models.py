@@ -8,7 +8,7 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(300), nullable=False)
     firstName = db.Column(db.String(30), nullable=False)
     secondName = db.Column(db.String(30), nullable=False)
-    surname = db.Column(db.String(30))  # => department
+    department = db.Column(db.String(60))
     role = db.Column(db.String(20))
     room = db.relationship("Room", backref="user")
     message = db.relationship("Message", backref="user")
@@ -30,8 +30,8 @@ class Message(db.Model):
 class Room(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     roomNumber = db.Column(db.Integer, nullable=False)
-    conferenceTitle = db.Column(db.String(50), nullable=False)
-    comment = db.Column(db.String(150))
+    conferenceTitle = db.Column(db.String(60), nullable=False)
     startDate = db.Column(db.DateTime(timezone=True), nullable=False)
     endDate = db.Column(db.DateTime(timezone=True), nullable=False)
+    comment = db.Column(db.String(180))
     userId = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
