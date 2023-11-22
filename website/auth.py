@@ -3,9 +3,10 @@ from .models import User
 from werkzeug.security import generate_password_hash, check_password_hash
 from . import db  ## означает из __init__.py импортировать db
 from flask_login import login_user, login_required, logout_user, current_user
+from sqlalchemy import exists
+import json
 
 auth = Blueprint("auth", __name__)
-
 
 @auth.route("/login", methods=["GET", "POST"])
 def login():
@@ -69,14 +70,12 @@ def sign_up():
         email = request.form.get("email")
         first_name = request.form.get("firstName")
         second_name = request.form.get("secondName")
-        surname = request.form.get("surname")
+        department = request.form.get("department")
         password1 = request.form.get("password1")
         password2 = request.form.get("password2")
 
-        user_exists = db.session.query(
-            User.query.filter_by(email=email).exists()
-        ).scalar()
-        if user_exists:
+        #user_exists = db.session.query(exists().where(User.email == email)).scalar()
+        if email == "":
             flash("Пользователь с таким email уже существует.", category="error")
         elif len(email) < 4:
             flash("Email должен содержать более 3 символов.", category="error")
@@ -93,7 +92,7 @@ def sign_up():
                 email=email,
                 firstName=first_name,
                 secondName=second_name,
-                surname=surname,
+                department=department,
                 password=generate_password_hash(password1, method="sha256"),
                 role="user",
             )
@@ -103,4 +102,6 @@ def sign_up():
             flash("Account created!", category="success")
             return redirect(url_for("rooms.home"))
 
-    return render_template("sign_up.html", user=current_user)
+    with open('website\static\departments.json', 'r', encoding='utf-8') as file:
+        departments = json.load(file)
+    return render_template("sign_up.html", user = current_user, departments=departments)

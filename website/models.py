@@ -4,11 +4,11 @@ from flask_login import UserMixin
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(30), unique=True, nullable=False)
+    email = db.Column(db.String(60), unique=True, nullable=False)
     password = db.Column(db.String(300), nullable=False)
     firstName = db.Column(db.String(30), nullable=False)
     secondName = db.Column(db.String(30), nullable=False)
-    department = db.Column(db.String(60))
+    department = db.Column(db.String(90))
     role = db.Column(db.String(20))
     room = db.relationship("Room", backref="user")
     message = db.relationship("Message", backref="user")
