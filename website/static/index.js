@@ -17,15 +17,10 @@ async function roomInfo(roomNumber, reservationDate) {
     if (bookingInfo.length > 0) {
       bookingInfo.forEach((booking) => {
         const occupiedTime = document.createElement("li");
+        occupiedTime.style.display = "flex";
 
         const startTime = new Date(booking.start_time);
         const endTime = new Date(booking.end_time);
-
-        // const formattedDate = new Intl.DateTimeFormat("ru-RU", {
-        //   day: "numeric",
-        //   month: "long",
-        //   year: "numeric",
-        // }).format(startTime);
 
         const formattedStartTime = new Intl.DateTimeFormat("ru-RU", {
           hour: "numeric",
@@ -55,33 +50,44 @@ async function roomInfo(roomNumber, reservationDate) {
         timeRange.style.color = "white";
         timeRange;
         occupiedTime.innerHTML = `
+        <div>
           <strong>${booking.event_name}</strong><br>
           Продолжительность:<br>
           ${timeRange.outerHTML}<br>
           Забронированно на: <br> ${booking.booking_name}<br>
-          
+          </div>
         `;
-        if (booking.comment != null) {
+        if (booking.comment.length > 0) {
           console.log(booking.comment);
-          occupiedTime.innerHTML += 
-          `<button
+          occupiedTime.innerHTML += `<button
           type="button"
-          class="btn btn-sm btn-secondary"
+          class="btn btn-xs"
           data-bs-toggle="popover"
           data-bs-title="Информация:"
           data-bs-content="${booking.comment}"
           data-bs-placement="right"
           >
-          Детали
-        </button>`
+          <img
+                  width="25"
+                  height="25"
+                  src="../static/info_icon.svg"
+                  alt="Info Icon"
+                />
+        </button>`;
         }
+        const newButton = occupiedTime.querySelector(
+          "button[data-bs-toggle='popover']"
+        );
+        const popover = new bootstrap.Popover(newButton);
 
+        newButton.addEventListener("click", function () {
+          popover.toggle();
+        });
         occupiedTimesElement.appendChild(occupiedTime);
       });
     } else {
       const noBookingsMessage = document.createElement("p");
-      noBookingsMessage.textContent =
-        "Броней нет.";
+      noBookingsMessage.textContent = "Броней нет.";
       occupiedTimesElement.appendChild(noBookingsMessage);
     }
   } catch (error) {
