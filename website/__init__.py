@@ -2,6 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from os import path
 from flask_login import LoginManager
+from website import filters 
 
 db = SQLAlchemy()
 DB_NAME = "database.db"
@@ -21,6 +22,17 @@ def create_app():
         "SQLALCHEMY_DATABASE_URI"
     ] = "postgresql://postgres:password@localhost/postgres"
     db.init_app(app)
+
+    from website import filters
+    app.jinja_env.filters['strftime'] = filters.strftime
+  #  app.config[
+  #      "SQLALCHEMY_DATABASE_URI"
+  #  ] =  "mssql+pymssql://sinqx:password@localhost/mssql"
+  # 
+  #  db.init_app(app)
+
+
+    
 
     # Импортируем и регистрируем синематические модули
     from .rooms import rooms
