@@ -1,5 +1,6 @@
 .my-rooms{
   font-size: 120%;
+  margin-top: 50px;
 }
 
 .bookingInfo1{
@@ -203,3 +204,19 @@
 }
 
 
+.info-button {
+  height: 40px;
+  padding: 0;
+}
+
+.booking-details__list_item{
+  display: flex;
+  align-items: start;
+}
+.booking-details__info{
+  display: flex;
+  align-items: start;
+  flex-direction: column;
+  gap: 5px;
+  word-break: break-word;
+}

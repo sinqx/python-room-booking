@@ -69,12 +69,23 @@
               name="comment"
             />
           </div>
-          <button type="submit" class="btn btn-primary  m-3">Забронировать</button>
+          <div class="form-group m-3">
+            <label for="bookingDates{{ i }}">Выберите даты</label>
+            <input
+              type="text"
+              class="form-control"
+              id="bookingDates{{ i }}"
+              name="bookingDates"
+              required
+            />
+          </div>
+          <button type="submit" class="btn btn-primary m-3">
+            Забронировать
+          </button>
         </form>
-        <br></br>
+        <br />
       </div>
     </div>
   </div>
 </div>
 {% endfor %}
-

@@ -23,14 +23,11 @@
     >
       {{ button_names[i] }}
     </button>
-    {% else %}
-    <button type="button" class="button">
-      {% endif %} {{ button_names[i] }}
-    </button>
+    {% else %} {% endif %}
+
     <div class="bookingInfo1" id="bookingInfo{{ i }}">
       <ul id="occupiedTimes{{ i }}"></ul>
     </div>
-
   </div>
   {% endfor %}
 </div>
