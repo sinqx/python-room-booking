@@ -1,6 +1,6 @@
 {% extends "base.html" %} {% block title %}User rooms{% endblock %} {% block
 content %}
-<div class="buttons_container">
+<div class="container">
   {% set button_names = [ "Конференц-зал", "Компьютерный зал", "Зал для
   презентаций", "Аудитория", "Мультимедийный зал", "Тренинг-зал" ] %} {% for i
   in range(button_names|length) %} {% endfor %}
@@ -18,7 +18,7 @@ content %}
           <th>Конец</th>
           <th>Название мероприятия</th>
           <th>Статус</th>
-         
+
           <!-- Добавлен заголовок для столбца с кнопкой удаления -->
         </tr>
       </thead>
@@ -31,7 +31,6 @@ content %}
           <td>{{ room.conferenceTitle }}</td>
           <td>{{ room.status }}</td>
           <td>
-           
             <button
               type="button"
               class="btn btn-xs"
@@ -40,12 +39,12 @@ content %}
               data-bs-content="{{room.comment}}"
               data-bs-placement="left"
             >
-            <img
-                  width="25"
-                  height="25"
-                  src="../static/info_icon.svg"
-                  alt="Info Icon"
-                />
+              <img
+                width="25"
+                height="25"
+                src="../static/info_icon.svg"
+                alt="Info Icon"
+              />
             </button>
           </td>
           <td>
@@ -66,6 +65,25 @@ content %}
               </button>
             </form>
           </td>
+          <td>
+            <button
+              type="button"
+              class="btn btn-xs"
+              data-bs-toggle="modal"
+              data-bs-target="#bookingModal{{ id }}"
+              data-room-number="{{ room.id }}"
+              onclick="fillModalForm('{{ room.id }}', 
+              '{{ room.conferenceTitle }}', '{{ room.startDate }}',
+               '{{ room.endDate }}', '{{ room.comment }}')"
+            >
+              <img
+                width="25"
+                height="25"
+                src="../static/edit_icon.svg"
+                alt="Edit Icon"
+              />
+            </button>
+          </td>
         </tr>
         {% endfor %}
       </tbody>
@@ -75,4 +93,5 @@ content %}
     {% endif %}
   </div>
 </div>
-{% endblock %}
+
+{% include "edit_booking.html" %} {% endblock %}

@@ -42,6 +42,7 @@ def userRooms():
         Room.userId == current_user.id, Room.endDate > currentDatetime
     ).all()
 
+    print(currentDatetime)
     for room in my_rooms:
         room_start = room.startDate.astimezone(room.startDate.tzinfo).strftime(
             "%Y-%m-%d %H:%M"
@@ -72,8 +73,25 @@ def userRooms():
     )
 
 
-@rooms.route("/roomInfo/", methods=["GET"])
-def get_room_info():
+@rooms.route("/roomInfo", methods=["GET"])
+@login_required
+def getRoomInfo():
+    """
+    Отображает домашнюю страницу с информацией о забронированных комнатах пользователя.
+    Returns:
+        HTML-страница с информацией о забронированных комнатах.
+    """
+    roomId = int(request.args.get("id"))
+    # Получение всех забронированных комнат пользователя, дата окончания которых позднее текущей даты
+    roomInfo = Room.query.filter(Room.id == roomId)
+
+    print(roomInfo)
+
+    return render_template("edit_Booking.html", roomInfo=roomInfo)
+
+
+@rooms.route("/bookedRooms/", methods=["GET"])
+def get_all_booked_rooms():
     """
     Возвращает информацию о забронированных временных слотах для указанной комнаты в указанное число.
 
@@ -86,21 +104,20 @@ def get_room_info():
     """
 
     room_number = int(request.args.get("roomNumber"))
-    reservation_date_str = str(request.args.get("reservationDate"))
-    reservation_date = datetime.strptime(
-        reservation_date_str, "%Y-%m-%dT%H:%M:%S.%fZ"
-    ).date()
+    resevation_date = str(request.args.get("reservationDate"))
+
+    print(resevation_date)
 
     booking_list = Room.query.filter(
         (Room.roomNumber == room_number),
-        Room.endDate.cast(Date) == reservation_date,
+        or_(Room.endDate > resevation_date, Room.endDate == None),
     ).all()
 
     occupied_times = []
     for booking in booking_list:
         start_time = booking.startDate.strftime("%Y-%m-%d %H:%M")
         end_time = booking.endDate.strftime("%Y-%m-%d %H:%M")
-        booking_name = f"{booking.user.firstName} {booking.user.secondName}"
+        booking_name = f"{booking.user.department} - {booking.user.firstName} {booking.user.secondName}."
         event_name = booking.conferenceTitle
         event_comment = booking.comment
         occupied_times.append(
@@ -127,6 +144,7 @@ def book_room():
         startDate (str): Дата и время начала бронирования в формате "%Y-%m-%dT%H:%M".
         endDate (str): Дата и время окончания бронирования в формате "%Y-%m-%dT%H:%M".
         title (str): Название конференции.
+        days (int): количество дней, сколько будет длиться конференция.
 
     Returns:
         Перенаправление на домашнюю страницу.
@@ -193,9 +211,7 @@ def cancel_book():
     """
     if request.method == "POST" or request.method == "DELETE":
         room_id = request.form.get("room_id")
-        print("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||")
-        print(room_id)
-        print("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||")
+
         booked_room = Room.query.filter_by(id=room_id).first()
 
         current_time = datetime.now().astimezone(booked_room.startDate.tzinfo)
@@ -214,3 +230,93 @@ def cancel_book():
             flash("Вы можете отменять только свои брони", category="error")
 
     return redirect(url_for("rooms.home"))
+
+
+@rooms.route("/edit_booking", methods=["POST", "PATCH"])
+@login_required
+def edit_booking():
+    """
+    Редактирует существующую бронь комнаты.
+
+    Args:
+        roomId (int): Идентификатор брони.
+
+    Request Body (JSON):
+        startDate (str): Новая дата и время начала бронирования в формате "%Y-%m-%dT%H:%M".
+        endDate (str): Новая дата и время окончания бронирования в формате "%Y-%m-%dT%H:%M".
+        title (str): Новое название конференции.
+        comment (str): Новый комментарий к брони.
+
+    Returns:
+        JSON response:
+            {
+                "message": "Бронь успешно отредактирована"
+            }
+    """
+    if request.method == "POST" or request.form.get("_method") == "PATCH":
+        roomId = request.form.get("roomId")
+        booking = Room.query.get(roomId)  # лучение существующей брони по идентификатору
+
+        if not booking:
+            return jsonify({"message": "Бронь не найдена"}), 404
+        elif (
+            booking.userId != current_user.id
+        ):  # Проверка, что пользователь может редактировать только свои брони
+            return (
+                jsonify({"message": "У вас нет прав для редактирования этой брони"}),
+                403,
+            )
+        else:
+            start_date = datetime.strptime(request.form["startDate"], "%Y-%m-%dT%H:%M")
+            end_date = datetime.strptime(request.form["endDate"], "%Y-%m-%dT%H:%M")
+            conference_title = request.form["title"]
+            room_comment = request.form["comment"]
+
+            if end_date - start_date > timedelta(hours=24):
+                return (
+                    jsonify({"message": "Нельзя бронировать зал более чем на 24 часа"}),
+                    400,
+                )
+            elif end_date < start_date + timedelta(minutes=15):
+                return (
+                    jsonify(
+                        {"message": "Нельзя бронировать зал менее чем на 15 минут"}
+                    ),
+                    400,
+                )
+            else:
+                existing_bookings = Room.query.filter(
+                    Room.roomNumber == booking.roomNumber,
+                    or_(
+                        and_(
+                            Room.startDate < end_date, Room.endDate > start_date
+                        ),  # Проверка перекрытия существующих броней
+                        and_(
+                            Room.startDate == start_date, Room.endDate == end_date
+                        ),  # Проверка точного совпадения времени бронирования
+                        and_(
+                            Room.startDate < start_date, Room.endDate > start_date
+                        ),  # Проверка частичного перекрытия броней
+                        and_(
+                            Room.startDate < end_date, Room.endDate > end_date
+                        ),  # Проверка частичного перекрытия броней
+                    ),
+                    Room.id
+                    != roomId,  # Исключение текущей брони из проверки перекрытия
+                ).all()
+
+                if existing_bookings:
+                    return (
+                        jsonify({"message": "Вы не можете забронировать на это время"}),
+                        400,
+                    )
+                else:
+                    booking.startDate = start_date
+                    booking.endDate = end_date
+                    booking.conferenceTitle = conference_title
+                    booking.comment = room_comment
+
+                    db.session.commit()
+                    flash("Бронь успешно отредактирована", category="info")
+
+    return redirect(url_for("rooms.userRooms"))

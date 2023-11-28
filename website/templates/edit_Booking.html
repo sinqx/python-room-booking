@@ -1,0 +1,92 @@
+<div
+  class="modal fade"
+  id="bookingModal{{ id }}"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="bookingModalLabel{{ id }}"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="bookingModalLabel{{ id }}">
+          Редактирование брони {{roomId}}
+        </h5>
+        <button
+          type="button"
+          class="close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <!-- Форма для редактирования данных бронирования -->
+        <form action="/edit_booking" method="POST">
+          <input type="hidden" name="_method" value="PATCH">
+          <input
+            type="hidden"
+            type="text"
+            class="form-control"
+            id="roomId"
+            name="roomId"
+            required
+          />
+          <div class="form-group m-3">
+            <label for="title{{ id }}">Название</label>
+            <input
+              type="text"
+              class="form-control"
+              id="title"
+              name="title"
+              required
+            />
+          </div>
+          <div class="form-group m-3">
+            <label for="startDate{{ id }}">Дата и время начала</label>
+            <input
+              type="datetime-local"
+              class="form-control"
+              id="startDate"
+              name="startDate"
+              required
+            />
+          </div>
+          <div class="form-group m-3">
+            <label for="endDate{{ id }}">Дата и время окончания</label>
+            <input
+              type="datetime-local"
+              class="form-control"
+              id="endDate"
+              name="endDate"
+              required
+            />
+          </div>
+          <div class="form-group m-3">
+            <label for="comment">Комментарий</label>
+            <input
+              type="text"
+              class="form-control"
+              id="comment"
+              name="comment"
+            />
+          </div>
+          <div class="form-group m-3">
+            <label for="department">Зал</label>
+            <select class="form-control" id="department" name="department">
+              <option value="" disabled selected>Выберите зал:</option>
+              {% for department in departments %}
+              <option value="{{ department }}">{{ department }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary m-3">
+            Сохранить изменения
+          </button>
+        </form>
+        <br />
+      </div>
+    </div>
+  </div>
+</div>

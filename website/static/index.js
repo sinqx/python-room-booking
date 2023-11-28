@@ -1,7 +1,7 @@
-async function roomInfo(roomNumber, reservationDate) {
+async function getAllBookedRooms(roomNumber, reservationDate) {
   try {
     const response = await fetch(
-      `/roomInfo/?roomNumber=${roomNumber}&reservationDate=${reservationDate}`
+      `/bookedRooms/?roomNumber=${roomNumber}&reservationDate=${reservationDate}`
     );
     const data = await response.json();
     const bookingInfo = data.occupied_times;
@@ -17,7 +17,7 @@ async function roomInfo(roomNumber, reservationDate) {
     if (bookingInfo.length > 0) {
       bookingInfo.forEach((booking) => {
         const occupiedTime = document.createElement("li");
-        occupiedTime.style.display = "flex";
+        occupiedTime.style.marginBottom = "10px";
 
         const startTime = new Date(booking.start_time);
         const endTime = new Date(booking.end_time);
@@ -46,35 +46,39 @@ async function roomInfo(roomNumber, reservationDate) {
         }
 
         timeRange.style.borderRadius = "30px";
-        timeRange.style.padding = "3px";
+        timeRange.style.padding = "5px 10px";
         timeRange.style.color = "white";
         timeRange;
         occupiedTime.innerHTML = `
-        <div>
-          <strong>${booking.event_name}</strong><br>
-          Продолжительность:<br>
-          ${timeRange.outerHTML}<br>
-          Забронированно на: <br> ${booking.booking_name}<br>
+        <div class="booking-details__list_item">
+          <div class="booking-details__info">
+            <strong >${booking.event_name}</strong>
+            ${timeRange.outerHTML}
+            Забронированно на:  ${booking.booking_name}
           </div>
+          ${
+            booking.comment.length > 0
+              ? `<div>
+          <button
+            type="button"
+            class="btn info-button "
+            data-bs-toggle="popover"
+            data-bs-title="Информация:"
+            data-bs-content="${booking.comment}"
+            data-bs-placement="right"
+            >
+            <img
+                width="25"
+                height="25"
+                src="../static/info_icon.svg"
+                alt="Info Icon"
+              />
+          </button>
+        </div>`
+              : ""
+          }
+        </div>
         `;
-        if (booking.comment.length > 0) {
-          console.log(booking.comment);
-          occupiedTime.innerHTML += `<button
-          type="button"
-          class="btn btn-xs"
-          data-bs-toggle="popover"
-          data-bs-title="Информация:"
-          data-bs-content="${booking.comment}"
-          data-bs-placement="right"
-          >
-          <img
-                  width="25"
-                  height="25"
-                  src="../static/info_icon.svg"
-                  alt="Info Icon"
-                />
-        </button>`;
-        }
         const newButton = occupiedTime.querySelector(
           "button[data-bs-toggle='popover']"
         );
@@ -95,31 +99,58 @@ async function roomInfo(roomNumber, reservationDate) {
   }
 }
 
-function messageInfo(messageId) {
-  fetch(`/get_message_info?messageId=${messageId}`, {
+function fillModalForm(roomId, conferenceTitle, startDate, endDate, comment) {
+  // Находим элементы формы модального окна по их id
+  console.log(roomId)
+  var titleInput = document.getElementById('title');
+  var startDateInput = document.getElementById('startDate' );
+  var endDateInput = document.getElementById('endDate');
+  var commentInput = document.getElementById('comment');
+  var roomIdInput= document.getElementById('roomId');
+  
+  // Заполняем значениями из аргументов функции
+  titleInput.value = conferenceTitle;
+  startDateInput.value = formatDate(startDate);
+  endDateInput.value = formatDate(endDate);
+  commentInput.value = comment;
+  roomIdInput.value = roomId;
+}
+
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+async function roomInfo(roomId) {
+  fetch(`/roomInfo=${roomId}`, {
     method: "GET",
   })
     .then((response) => response.json())
     .then((data) => {
       // Полученный объект сообщения
-      const message = data.message;
+      const room = data.room;
 
       // Пример обновления контейнера с текстом сообщения
-      const messageContainer = document.getElementById("messageContainer");
-      if (messageContainer) {
-        messageContainer.message = message;
+      const roomContainer = document.getElementById("roomContainer");
+      if (roomContainer) {
+        roomContainer.room = room;
       }
     })
     .catch((error) => {
-      console.error("Ошибка при получении сообщения:", error);
+      console.error("Ошибка при получении информации о брони:", error);
     });
 }
+
 
 // Получение информации о бронировании комнаты и сообщениях
 document.addEventListener("DOMContentLoaded", function () {
   // Получаем все кнопки зала
-  const currentDateElement = document.getElementById("currentDate");
-  let currentDate = new Date();
 
   function updateRoomInfo() {
     const buttonNames = [
@@ -133,24 +164,29 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const formattedDate = currentDate.toISOString();
     for (let i = 0; i < buttonNames.length; i++) {
-      roomInfo(i, formattedDate);
+      getAllBookedRooms(i, formattedDate);
     }
   }
 
-  const messageButtons = document.querySelectorAll(".message-button");
-  messageButtons.forEach(function (button) {
-    button.addEventListener("click", function () {
-      const messageId = this.dataset.messageId;
-      console.log(messageId);
-      messageInfo(messageId);
-    });
-  });
+  let currentDate = new Date();
+  
+  const currentDateElement = document.getElementById("currentDate");
+  function updateCurrentDate() {
+    currentDateElement.textContent = currentDate.toLocaleDateString();
+  }
 
   const prevDateButton = document.getElementById("prevDate");
   prevDateButton.addEventListener("click", () => {
-    currentDate.setDate(currentDate.getDate() - 1);
-    updateCurrentDate();
-    updateRoomInfo();
+    const today = new Date(); // Текущая дата
+    const previousDate = new Date(currentDate); // Создание копии текущей даты
+    today.setDate(today.getDate() - 1);
+    previousDate.setDate(previousDate.getDate() - 1); // Установка предыдущей даты
+    // Проверка, если предыдущая дата находится в прошлом относительно текущей даты
+    if (previousDate >= today) {
+      currentDate = previousDate; // Обновление текущей даты
+      updateCurrentDate();
+      updateRoomInfo();
+    }
   });
 
   // Обработчик события для кнопки "Следующая дата"
@@ -164,10 +200,15 @@ document.addEventListener("DOMContentLoaded", function () {
   updateCurrentDate();
   updateRoomInfo();
 
-  function updateCurrentDate() {
-    currentDateElement.textContent = currentDate.toLocaleDateString();
-  }
+  const closeButton = document.querySelectorAll('[data-dismiss="alert"]');
+    closeButton.forEach(function (button) {
+      button.addEventListener("click", function () {
+        const alert = this.closest(".alert");
+        alert.remove();
+      });
+    });
 });
+
 
 let popoverTriggerList = [].slice.call(
   document.querySelectorAll('[data-bs-toggle="popover"]')
@@ -175,3 +216,41 @@ let popoverTriggerList = [].slice.call(
 let popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
   return new bootstrap.Popover(popoverTriggerEl);
 });
+
+// const messageButtons = document.querySelectorAll(".message-button");
+// messageButtons.forEach(function (button) {
+//   button.addEventListener("click", function () {
+//     const messageId = this.dataset.messageId;
+//     console.log(messageId);
+//     messageInfo(messageId);
+//   });
+// });
+
+
+// async function messageInfo(messageId) {
+//   fetch(`/get_message_info?messageId=${messageId}`, {
+//     method: "GET",
+//   })
+//     .then((response) => response.json())
+//     .then((data) => {
+//       // Полученный объект сообщения
+//       const message = data.message;
+
+//       // Пример обновления контейнера с текстом сообщения
+//       const messageContainer = document.getElementById("messageContainer");
+//       if (messageContainer) {
+//         messageContainer.message = message;
+//       }
+//     })
+//     .catch((error) => {
+//       console.error("Ошибка при получении сообщения:", error);
+//     });
+// }
+
+// $(function () {
+//   $('[id^="bookingDates"]').datepicker({
+//     multidate: true,
+//     format: "yyyy-mm-dd",
+//     startDate: "today",
+//   });
+// });
