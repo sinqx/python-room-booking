@@ -1,17 +1,18 @@
-async function getAllBookedRooms(roomNumber, reservationDate) {
+async function getAllBookedRooms(roomName, reservationDate) {
   try {
     const response = await fetch(
-      `/bookedRooms/?roomNumber=${roomNumber}&reservationDate=${reservationDate}`
+      `/bookedRooms/?roomName=${roomName}&reservationDate=${reservationDate}`
     );
     const data = await response.json();
     const bookingInfo = data.occupied_times;
-    const bookingInfoContainer = document.querySelector(
-      `#bookingInfo${roomNumber}`
+    // const bookingInfoContainer = document.getElementById(
+    //   `${roomName}`
+    // );
+    // console.log(bookingInfoContainer);
+    const occupiedTimesElement = document.getElementById(
+      `${roomName}`
     );
-    const occupiedTimesElement = bookingInfoContainer.querySelector(
-      `#occupiedTimes${roomNumber}`
-    );
-
+    console.log(bookingInfo)
     occupiedTimesElement.innerHTML = "";
 
     if (bookingInfo.length > 0) {
@@ -54,7 +55,7 @@ async function getAllBookedRooms(roomNumber, reservationDate) {
           <div class="booking-details__info">
             <strong >${booking.event_name}</strong>
             ${timeRange.outerHTML}
-            Забронированно на:  ${booking.booking_name}
+            Забронированно на: ${booking.booking_name}
           </div>
           ${
             booking.comment.length > 0
@@ -101,13 +102,13 @@ async function getAllBookedRooms(roomNumber, reservationDate) {
 
 function fillModalForm(roomId, conferenceTitle, startDate, endDate, comment) {
   // Находим элементы формы модального окна по их id
-  console.log(roomId)
-  var titleInput = document.getElementById('title');
-  var startDateInput = document.getElementById('startDate' );
-  var endDateInput = document.getElementById('endDate');
-  var commentInput = document.getElementById('comment');
-  var roomIdInput= document.getElementById('roomId');
-  
+  console.log(roomId);
+  var titleInput = document.getElementById("title");
+  var startDateInput = document.getElementById("startDate");
+  var endDateInput = document.getElementById("endDate");
+  var commentInput = document.getElementById("comment");
+  var roomIdInput = document.getElementById("roomId");
+
   // Заполняем значениями из аргументов функции
   titleInput.value = conferenceTitle;
   startDateInput.value = formatDate(startDate);
@@ -119,10 +120,10 @@ function fillModalForm(roomId, conferenceTitle, startDate, endDate, comment) {
 function formatDate(dateString) {
   const date = new Date(dateString);
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
 
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
@@ -147,11 +148,22 @@ async function roomInfo(roomId) {
     });
 }
 
-
 // Получение информации о бронировании комнаты и сообщениях
 document.addEventListener("DOMContentLoaded", function () {
   // Получаем все кнопки зала
-
+  const modalButtons = document.querySelectorAll(
+    '.button[data-bs-toggle="modal"]'
+  );
+  modalButtons.forEach(function (button) {
+    button.addEventListener("click", function () {
+      const roomName = this.getAttribute("data-room-name");
+      const modalIndex = this.getAttribute("data-room-number");
+      const roomNameElement = document.getElementById("roomName" + modalIndex);
+      if (roomNameElement) {
+        roomNameElement.textContent = roomName;
+      }
+    });
+  });
   function updateRoomInfo() {
     const buttonNames = [
       "Конференц-зал",
@@ -164,12 +176,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const formattedDate = currentDate.toISOString();
     for (let i = 0; i < buttonNames.length; i++) {
-      getAllBookedRooms(i, formattedDate);
+      getAllBookedRooms(buttonNames[i], formattedDate);
     }
   }
 
   let currentDate = new Date();
-  
+
   const currentDateElement = document.getElementById("currentDate");
   function updateCurrentDate() {
     currentDateElement.textContent = currentDate.toLocaleDateString();
@@ -201,14 +213,13 @@ document.addEventListener("DOMContentLoaded", function () {
   updateRoomInfo();
 
   const closeButton = document.querySelectorAll('[data-dismiss="alert"]');
-    closeButton.forEach(function (button) {
-      button.addEventListener("click", function () {
-        const alert = this.closest(".alert");
-        alert.remove();
-      });
+  closeButton.forEach(function (button) {
+    button.addEventListener("click", function () {
+      const alert = this.closest(".alert");
+      alert.remove();
     });
+  });
 });
-
 
 let popoverTriggerList = [].slice.call(
   document.querySelectorAll('[data-bs-toggle="popover"]')
@@ -216,41 +227,3 @@ let popoverTriggerList = [].slice.call(
 let popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
   return new bootstrap.Popover(popoverTriggerEl);
 });
-
-// const messageButtons = document.querySelectorAll(".message-button");
-// messageButtons.forEach(function (button) {
-//   button.addEventListener("click", function () {
-//     const messageId = this.dataset.messageId;
-//     console.log(messageId);
-//     messageInfo(messageId);
-//   });
-// });
-
-
-// async function messageInfo(messageId) {
-//   fetch(`/get_message_info?messageId=${messageId}`, {
-//     method: "GET",
-//   })
-//     .then((response) => response.json())
-//     .then((data) => {
-//       // Полученный объект сообщения
-//       const message = data.message;
-
-//       // Пример обновления контейнера с текстом сообщения
-//       const messageContainer = document.getElementById("messageContainer");
-//       if (messageContainer) {
-//         messageContainer.message = message;
-//       }
-//     })
-//     .catch((error) => {
-//       console.error("Ошибка при получении сообщения:", error);
-//     });
-// }
-
-// $(function () {
-//   $('[id^="bookingDates"]').datepicker({
-//     multidate: true,
-//     format: "yyyy-mm-dd",
-//     startDate: "today",
-//   });
-// });

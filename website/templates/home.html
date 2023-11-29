@@ -9,9 +9,7 @@
   <div class="button-group"></div>
 </div>
 <div class="buttons_container">
-  {% set button_names = [ "Конференц-зал", "Компьютерный зал", "Зал для
-  презентаций", "Аудитория", "Мультимедийный зал", "Тренинг-зал" ] %} {% for i
-  in range(button_names|length) %}
+  {% for i in range(roomsNames|length) %}
   <div class="button_item">
     {% if user.is_authenticated %}
     <button
@@ -20,13 +18,21 @@
       data-bs-toggle="modal"
       data-bs-target="#bookingModal{{ i }}"
       data-room-number="{{ i }}"
+      data-room-name="{{ roomsNames[i] }}"
     >
-      {{ button_names[i] }}
+      {{ roomsNames[i] }}
     </button>
-    {% else %} {% endif %}
+    {% else %}
+    <button
+      type="button"
+      class="button"   
+    >
+      {{ roomsNames[i] }}
+    </button>
+     {% endif %}
 
-    <div class="bookingInfo1" id="bookingInfo{{ i }}">
-      <ul id="occupiedTimes{{ i }}"></ul>
+    <div class="bookingInfo1">
+      <ul id="{{  roomsNames[i] }}"></ul>
     </div>
   </div>
   {% endfor %}

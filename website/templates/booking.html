@@ -1,4 +1,4 @@
-{% for i in range(0, 6) %}
+{% for i in range(roomsNames|length) %}
 <div
   class="modal fade"
   id="bookingModal{{ i }}"
@@ -11,21 +11,19 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="bookingModalLabel{{ i }}">
-          Бронирование комнаты №{{ i }}
+          <span id="roomName{{ i }}"></span>
         </h5>
         <button
           type="button"
-          class="close"
+          class="btn-close"
           data-bs-dismiss="modal"
           aria-label="Close"
-        >
-          <span aria-hidden="true">&times;</span>
-        </button>
+        ></button>
       </div>
       <div class="modal-body">
         <!-- Форма для заполнения данных бронирования -->
         <form action="/book_room" method="POST">
-          <input type="hidden" name="roomNumber" value="{{ i }}" />
+          <input type="hidden" name="roomName" value="{{roomsNames[i]}}" />
           <div class="form-group m-3">
             <label for="title{{ i }}">Название</label>
             <input
@@ -62,12 +60,12 @@
           </div>
           <div class="form-group m-3">
             <label for="comment{{ i }}">Комментарий</label>
-            <input
+            <textarea
               type="text"
               class="form-control"
               id="comment{{ i }}"
               name="comment"
-            />
+            ></textarea>
           </div>
           <div class="form-group m-3">
             <label for="bookingDates{{ i }}">Выберите даты</label>

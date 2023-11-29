@@ -12,8 +12,11 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import and_, or_, Date
 from .models import Room
 from . import db
+import json
 
 rooms = Blueprint("rooms", __name__)
+with open("website\static/roomsNames.json", "r", encoding="utf-8") as file:
+    roomsNames = json.load(file)
 
 
 @rooms.route("/", methods=["GET"])
@@ -23,8 +26,12 @@ def home():
     Returns:
         HTML-страница с информацией о забронированных комнатах.
     """
+
     return render_template(
-        "home.html", user=current_user, current_datetime=datetime.now()
+        "home.html",
+        user=current_user,
+        current_datetime=datetime.now(),
+        roomsNames=roomsNames,
     )
 
 
@@ -42,7 +49,6 @@ def userRooms():
         Room.userId == current_user.id, Room.endDate > currentDatetime
     ).all()
 
-    print(currentDatetime)
     for room in my_rooms:
         room_start = room.startDate.astimezone(room.startDate.tzinfo).strftime(
             "%Y-%m-%d %H:%M"
@@ -64,12 +70,12 @@ def userRooms():
             )
         else:
             room.status = "Мероприятие окончено"
-
     return render_template(
         "userRooms.html",
         user=current_user,
         current_datetime=currentDatetime,
         myRooms=my_rooms,
+        roomsNames=roomsNames,
     )
 
 
@@ -85,8 +91,6 @@ def getRoomInfo():
     # Получение всех забронированных комнат пользователя, дата окончания которых позднее текущей даты
     roomInfo = Room.query.filter(Room.id == roomId)
 
-    print(roomInfo)
-
     return render_template("edit_Booking.html", roomInfo=roomInfo)
 
 
@@ -96,20 +100,17 @@ def get_all_booked_rooms():
     Возвращает информацию о забронированных временных слотах для указанной комнаты в указанное число.
 
     Args:
-        roomNumber (int): Номер комнаты.
+        roomName (int): Номер комнаты.
          reservationDate (datetime): Дата брони.
 
     Returns:
         JSON-объект с информацией о забронированных временных слотах.
     """
-
-    room_number = int(request.args.get("roomNumber"))
+    room_name = request.args.get("roomName")
     resevation_date = str(request.args.get("reservationDate"))
 
-    print(resevation_date)
-
     booking_list = Room.query.filter(
-        (Room.roomNumber == room_number),
+        (Room.roomName == room_name),
         or_(Room.endDate > resevation_date, Room.endDate == None),
     ).all()
 
@@ -117,7 +118,7 @@ def get_all_booked_rooms():
     for booking in booking_list:
         start_time = booking.startDate.strftime("%Y-%m-%d %H:%M")
         end_time = booking.endDate.strftime("%Y-%m-%d %H:%M")
-        booking_name = f"{booking.user.department} - {booking.user.firstName} {booking.user.secondName}."
+        booking_name = f"{booking.user.department} - <u> {booking.user.firstName} {booking.user.secondName}</u>"
         event_name = booking.conferenceTitle
         event_comment = booking.comment
         occupied_times.append(
@@ -140,7 +141,7 @@ def book_room():
     Бронирует комнату на указанный временной интервал.
 
     Args:
-        roomNumber (str): Номер комнаты.
+        roomName (str): Номер комнаты.
         startDate (str): Дата и время начала бронирования в формате "%Y-%m-%dT%H:%M".
         endDate (str): Дата и время окончания бронирования в формате "%Y-%m-%dT%H:%M".
         title (str): Название конференции.
@@ -149,19 +150,19 @@ def book_room():
     Returns:
         Перенаправление на домашнюю страницу.
     """
-    room_number = request.form.get("roomNumber")
+    room_name = request.form.get("roomName")
     start_date = datetime.strptime(request.form.get("startDate"), "%Y-%m-%dT%H:%M")
     end_date = datetime.strptime(request.form.get("endDate"), "%Y-%m-%dT%H:%M")
     conference_title = request.form.get("title")
     room_comment = request.form.get("comment")
-
+ 
     if end_date - start_date > timedelta(hours=24):
         flash("Нельзя бронировать зал более чем на 24 часа", category="error")
     elif end_date < start_date + timedelta(minutes=15):
         flash("Нельзя бронировать зал менее чем на 15 минут", category="error")
     else:
         existing_bookings = Room.query.filter(
-            Room.roomNumber == room_number,
+            Room.roomName == room_name,
             or_(
                 and_(
                     Room.startDate < end_date, Room.endDate > start_date
@@ -182,7 +183,7 @@ def book_room():
             flash("Вы не можете забронировать на это время", category="error")
         else:
             new_booking = Room(
-                roomNumber=room_number,
+                roomName=room_name,
                 conferenceTitle=conference_title,
                 startDate=start_date,
                 endDate=end_date,
@@ -267,6 +268,10 @@ def edit_booking():
                 403,
             )
         else:
+            
+            room_name = request.form.get("roomName")
+            print(room_name)
+            print("|||||||||||||")
             start_date = datetime.strptime(request.form["startDate"], "%Y-%m-%dT%H:%M")
             end_date = datetime.strptime(request.form["endDate"], "%Y-%m-%dT%H:%M")
             conference_title = request.form["title"]
@@ -286,7 +291,7 @@ def edit_booking():
                 )
             else:
                 existing_bookings = Room.query.filter(
-                    Room.roomNumber == booking.roomNumber,
+                    Room.roomName == booking.roomName,
                     or_(
                         and_(
                             Room.startDate < end_date, Room.endDate > start_date
@@ -311,6 +316,7 @@ def edit_booking():
                         400,
                     )
                 else:
+                    booking.roomName = room_name
                     booking.startDate = start_date
                     booking.endDate = end_date
                     booking.conferenceTitle = conference_title

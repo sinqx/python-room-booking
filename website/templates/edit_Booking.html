@@ -24,7 +24,7 @@
       <div class="modal-body">
         <!-- Форма для редактирования данных бронирования -->
         <form action="/edit_booking" method="POST">
-          <input type="hidden" name="_method" value="PATCH">
+          <input type="hidden" name="_method" value="PATCH" />
           <input
             type="hidden"
             type="text"
@@ -65,19 +65,19 @@
           </div>
           <div class="form-group m-3">
             <label for="comment">Комментарий</label>
-            <input
+            <textarea
               type="text"
               class="form-control"
               id="comment"
               name="comment"
-            />
+            ></textarea>
           </div>
           <div class="form-group m-3">
             <label for="department">Зал</label>
-            <select class="form-control" id="department" name="department">
+            <select class="form-control" id="roomName" name="roomName">
               <option value="" disabled selected>Выберите зал:</option>
-              {% for department in departments %}
-              <option value="{{ department }}">{{ department }}</option>
+              {% for roomName in roomsNames %}
+              <option value="{{roomName}}">{{ roomName }}</option>
               {% endfor %}
             </select>
           </div>

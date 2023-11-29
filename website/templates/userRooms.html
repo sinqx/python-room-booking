@@ -1,10 +1,5 @@
 {% extends "base.html" %} {% block title %}User rooms{% endblock %} {% block
 content %}
-<div class="container">
-  {% set button_names = [ "Конференц-зал", "Компьютерный зал", "Зал для
-  презентаций", "Аудитория", "Мультимедийный зал", "Тренинг-зал" ] %} {% for i
-  in range(button_names|length) %} {% endfor %}
-</div>
 
 <div class="container">
   <div class="my-rooms">
@@ -25,7 +20,7 @@ content %}
       <tbody>
         {% for room in myRooms %}
         <tr class="mb-2">
-          <td>{{ button_names[room.roomNumber] }}</td>
+          <td>{{ room.roomName }}</td>
           <td>{{ room.startDate.strftime("%Y-%m-%d %H:%M") }}</td>
           <td>{{ room.endDate.strftime("%Y- %m-%d %H:%M") }}</td>
           <td>{{ room.conferenceTitle }}</td>
@@ -53,8 +48,7 @@ content %}
               <input type="hidden" name="room_id" value="{{ room.id }}" />
               <button
                 type="submit"
-                class="delete-button"
-                style="background: none; border: none"
+                class="btn btn-xs"
               >
                 <img
                   width="25"
