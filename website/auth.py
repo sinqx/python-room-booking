@@ -70,6 +70,7 @@ def sign_up():
         email = request.form.get("email")
         first_name = request.form.get("firstName")
         second_name = request.form.get("secondName")
+        surName = request.form.get("surName")
         department = request.form.get("department")
         password1 = request.form.get("password1")
         password2 = request.form.get("password2")
@@ -83,6 +84,8 @@ def sign_up():
             flash("Имя должно содержать более 1 символа.", category="error")
         elif len(second_name) < 2:
             flash("Фамилия должна содержать более 1 символа.", category="error")
+        elif len(surName) < 2:
+            flash("Отчество должно содержать более 1 символа.", category="error")
         elif password1 != password2:
             flash("Пароли не совпадают.", category="error")
         elif len(password1) < 6:
@@ -93,6 +96,7 @@ def sign_up():
                 firstName=first_name,
                 secondName=second_name,
                 department=department,
+                surName= surName,
                 password=generate_password_hash(password1, method="sha256"),
                 role="user",
             )
