@@ -9,10 +9,8 @@ async function getAllBookedRooms(roomName, reservationDate) {
     //   `${roomName}`
     // );
     // console.log(bookingInfoContainer);
-    const occupiedTimesElement = document.getElementById(
-      `${roomName}`
-    );
-    console.log(bookingInfo)
+    const occupiedTimesElement = document.getElementById(`${roomName}`);
+    console.log(bookingInfo);
     occupiedTimesElement.innerHTML = "";
 
     if (bookingInfo.length > 0) {
@@ -49,7 +47,7 @@ async function getAllBookedRooms(roomName, reservationDate) {
         timeRange.style.borderRadius = "30px";
         timeRange.style.padding = "5px 10px";
         timeRange.style.color = "white";
-        timeRange;
+        console.log(booking.comment);
         occupiedTime.innerHTML = `
         <div class="booking-details__list_item">
           <div class="booking-details__info">
@@ -62,10 +60,9 @@ async function getAllBookedRooms(roomName, reservationDate) {
               ? `<div>
           <button
             type="button"
-            class="btn info-button "
+            class="btn btn-xs"
             data-bs-toggle="popover"
             data-bs-title="Информация:"
-            data-bs-content="${booking.comment}"
             data-bs-placement="right"
             >
             <img
@@ -83,7 +80,9 @@ async function getAllBookedRooms(roomName, reservationDate) {
         const newButton = occupiedTime.querySelector(
           "button[data-bs-toggle='popover']"
         );
-        const popover = new bootstrap.Popover(newButton);
+        const popover = new bootstrap.Popover(newButton, {
+          content: booking.comment,
+        });
 
         newButton.addEventListener("click", function () {
           popover.toggle();
@@ -100,21 +99,13 @@ async function getAllBookedRooms(roomName, reservationDate) {
   }
 }
 
-function fillModalForm(roomId, conferenceTitle, startDate, endDate, comment) {
-  // Находим элементы формы модального окна по их id
-  console.log(roomId);
-  var titleInput = document.getElementById("title");
-  var startDateInput = document.getElementById("startDate");
-  var endDateInput = document.getElementById("endDate");
-  var commentInput = document.getElementById("comment");
-  var roomIdInput = document.getElementById("roomId");
-
+function fillModalForm() {
   // Заполняем значениями из аргументов функции
-  titleInput.value = conferenceTitle;
-  startDateInput.value = formatDate(startDate);
-  endDateInput.value = formatDate(endDate);
-  commentInput.value = comment;
-  roomIdInput.value = roomId;
+  titleInput.value = document.getElementById("title");
+  startDateInput.value = formatDate(document.getElementById("startDate"));
+  endDateInput.value = formatDate(document.getElementById("endDate"));
+  commentInput.value = document.getElementById("comment");
+  roomIdInput.value = document.getElementById("roomId");
 }
 
 function formatDate(dateString) {
@@ -162,6 +153,40 @@ document.addEventListener("DOMContentLoaded", function () {
       if (roomNameElement) {
         roomNameElement.textContent = roomName;
       }
+      const today = new Date();
+      const dateInput = document.getElementById("eventDates" + modalIndex);
+
+      flatpickr(dateInput, {
+        mode: "multiple",
+        defaultDate: today,
+        minDate: today,
+        maxDate: new Date().fp_incr(18), // Ограничение на 7 дней вперед
+        dateFormat: "d-m",
+      });
+
+      const timeInputStart = document.getElementById(
+        "timeInputStart" + modalIndex
+      );
+      flatpickr(timeInputStart, {
+        enableTime: true,
+        noCalendar: true,
+        minTime: "8:30",
+        maxTime: "16:30",
+        dateFormat: "H:i",
+        time_24hr: true,
+        defaultDate: "8:30",
+      });
+
+      const timeInputEnd = document.getElementById("timeInputEnd" + modalIndex);
+      flatpickr(timeInputEnd, {
+        enableTime: true,
+        noCalendar: true,
+        minTime: "9:30",
+        maxTime: "17:30",
+        dateFormat: "H:i",
+        time_24hr: true,
+        defaultDate: "17:30",
+      });
     });
   });
   function updateRoomInfo() {

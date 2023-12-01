@@ -43,23 +43,32 @@
               required
             />
           </div>
-          <div class="form-group m-3">
-            <label for="startDate{{ id }}">Дата и время начала</label>
+          <div class="form-group m-3 d-flex align-items-center">
+            <label
+              for="timeInputStart{{ i }}"
+              class="mr-2 mb-0"
+              style="padding-right: 15px"
+              >Начало:</label
+            >
             <input
-              type="datetime-local"
               class="form-control"
-              id="startDate"
-              name="startDate"
+              id="timeInputStart{{ i }}"
+              name="timeInputStart"
+              style="width: 70px"
               required
             />
-          </div>
-          <div class="form-group m-3">
-            <label for="endDate{{ id }}">Дата и время окончания</label>
+
+            <label
+              for="timeInputEnd{{ i }}"
+              class="ml-4 mr-2 mb-0 ps-4"
+              style="padding-right: 15px"
+              >Конец:</label
+            >
             <input
-              type="datetime-local"
-              class="form-control"
-              id="endDate"
-              name="endDate"
+              class="form-control px-2"
+              id="timeInputEnd{{ i }}"
+              name="timeInputEnd"
+              style="width: 70px"
               required
             />
           </div>
