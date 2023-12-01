@@ -19,5 +19,5 @@ class Room(db.Model):
     conferenceTitle = db.Column(db.String(60), nullable=False)
     startDate = db.Column(db.DateTime(timezone=True), nullable=False)
     endDate = db.Column(db.DateTime(timezone=True), nullable=False)
-    comment = db.Column(db.String(180))
+    comment = db.Column(db.String(300))
     userId = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
