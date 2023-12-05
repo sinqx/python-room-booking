@@ -110,33 +110,35 @@ def get_all_booked_rooms():
     Returns:
         JSON-объект с информацией о забронированных временных слотах.
     """
-    room_name = request.args.get("roomName")
-    reservation_date = request.args.get("reservationDate")
-    reservation_datetime = datetime.strptime(reservation_date, "%Y-%m-%dT%H:%M:%S.%fZ")
-
-    booking_list = Room.query.filter(
-        (Room.roomName == room_name),
-        (Room.startDate >= reservation_datetime.strftime("%Y-%m-%d 00:00:00")),
-        (Room.endDate <= reservation_datetime.strftime("%Y-%m-%d 24:00:00")),
-        (Room.endDate > datetime.now()),
-    ).all()
-
     occupied_times = []
-    for booking in booking_list:
-        start_time = booking.startDate.strftime("%Y-%m-%d %H:%M")
-        end_time = booking.endDate.strftime("%Y-%m-%d %H:%M")
-        booking_name = f"{booking.user.department} - <u> {booking.user.firstName} {booking.user.secondName}</u>"
-        event_name = booking.conferenceTitle
-        event_comment = booking.comment
-        occupied_times.append(
-            {
-                "start_time": start_time,
-                "end_time": end_time,
-                "booking_name": booking_name,
-                "event_name": event_name,
-                "comment": event_comment,
-            }
-        )
+    for roomName in roomsNames:
+        reservation_date = request.args.get("reservationDate")
+        reservation_datetime = datetime.strptime(reservation_date, "%Y-%m-%d %H:%M")
+
+        booking_list = Room.query.filter(
+            (Room.roomName == roomName),
+            (Room.startDate >= reservation_datetime.strftime("%Y-%m-%d 00:00:00")),
+            (Room.endDate <= reservation_datetime.strftime("%Y-%m-%d 24:00:00")),
+            (Room.endDate > datetime.now()),
+        ).all()
+
+      
+        for booking in booking_list:
+            start_time = booking.startDate.strftime("%Y-%m-%d %H:%M")
+            end_time = booking.endDate.strftime("%Y-%m-%d %H:%M")
+            booking_name = f"{booking.user.department} - <u> {booking.user.firstName} {booking.user.secondName}</u>"
+            event_name = booking.conferenceTitle
+            event_comment = booking.comment
+            occupied_times.append(
+                {   
+                    "roomName": roomName,
+                    "start_time": start_time,
+                    "end_time": end_time,
+                    "booking_name": booking_name,
+                    "event_name": event_name,
+                    "comment": event_comment,
+                }
+            )
 
     return jsonify({"occupied_times": occupied_times})
 
@@ -165,13 +167,14 @@ def book_room():
     current_year = datetime.now().year
 
     for date in dates:
-        # Создаем полноценную дату в формате "%Y-%m-%dT%H:%M"
-        full_date_start = f"{current_year}-{date.strip()}T{timeStart}"
-        full_date_end = f"{current_year}-{date.strip()}T{timeEnd}"
-
         # Преобразуем строки в объекты datetime
-        datetime_start = datetime.strptime(full_date_start, "%Y-%m-%dT%H:%M")
-        datetime_end = datetime.strptime(full_date_end, "%Y-%m-%dT%H:%M")
+        datetime_start = datetime.strptime(
+            f"{current_year}-{date} {timeStart}", "%Y-%d-%m %H:%M"
+        )
+        datetime_end = datetime.strptime(
+            f"{current_year}-{date} {timeEnd}", "%Y-%d-%m %H:%M"
+        )
+        print(datetime_start)
 
         if datetime_end - datetime_start > timedelta(hours=24):
             flash("Нельзя бронировать зал более чем на 24 часа", category="error")
@@ -198,29 +201,30 @@ def book_room():
 
         if existing_bookings:
             flash(
-                "Вы не можете забронировать это время:"
-                + datetime_start
-                + " - "
-                + datetime_end,
+                "Вы не можете забронировать это время: "
+                + datetime_start.strftime("%m-%d %H:%M")
+                + " по "
+                + datetime_end.strftime("%m-%d %H:%M"),
                 category="error",
             )
+            return redirect(url_for("rooms.home"))
         else:
             conference_title = request.form.get("title")
             room_comment = request.form.get("comment")
-            new_booking = Room(
-                roomName=room_name,
-                conferenceTitle=conference_title,
-                startDate=datetime_start,
-                endDate=datetime_end,
-                userId=current_user.id,
-                comment=room_comment,
+            db.session.add(
+                Room(
+                    roomName=room_name,
+                    conferenceTitle=conference_title,
+                    startDate=datetime_start,
+                    endDate=datetime_end,
+                    userId=current_user.id,
+                    comment=room_comment,
+                )
             )
 
-            db.session.add(new_booking)
-            db.session.commit()
-
-    return flash("Комната успешно забронирована", category="success"), redirect(
-        url_for("rooms.home")
+    db.session.commit()
+    return redirect(url_for("rooms.home")), flash(
+        "Комната успешно забронирована", category="success"
     )
 
 
@@ -354,5 +358,3 @@ def edit_booking():
                     flash("Бронь успешно отредактирована", category="info")
 
     return redirect(url_for("rooms.userRooms"))
-
-
