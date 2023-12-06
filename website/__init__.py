@@ -29,19 +29,14 @@ def create_app():
   #      "SQLALCHEMY_DATABASE_URI"
   #  ] =  "mssql+pymssql://sinqx:password@localhost/mssql"
   # 
-  #  db.init_app(app)
-
-
-    
+  #  db.init_app(app)    
 
     # Импортируем и регистрируем синематические модули
     from .rooms import rooms
     from .auth import auth
-    from .messages import messages
 
     app.register_blueprint(rooms, url_prefix="/")
     app.register_blueprint(auth, url_prefix="/")
-    app.register_blueprint(messages, url_prefix="/")
 
     # Импортируем модель пользователя
     from .models import User

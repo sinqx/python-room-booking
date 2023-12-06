@@ -26,6 +26,7 @@ content %}
           <td>{{ room.conferenceTitle }}</td>
           <td>{{ room.status }}</td>
           <td>
+            {% if room.comment != "" %}
             <button
               type="button"
               class="btn btn-xs"
@@ -41,6 +42,7 @@ content %}
                 alt="Info Icon"
               />
             </button>
+            {% endif %}
           </td>
           <td>
             <form action="/cancel_book" method="POST" class="delete-form">
@@ -66,7 +68,7 @@ content %}
               data-bs-toggle="modal"
               data-bs-target="#bookingModal{{ id }}"
               data-room-number="{{ room.id }}"
-              onclick="fillModalForm('{{ room.id }}', 
+              onclick="fillModalForm('{{room.roomName}}','{{ room.id }}', 
               '{{ room.conferenceTitle }}', '{{ room.startDate }}',
                '{{ room.endDate }}', '{{ room.comment }}')"
             >

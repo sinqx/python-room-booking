@@ -107,33 +107,45 @@ async function getAllBookedRooms(reservationDate) {
   }
 }
 
-function fillModalForm(roomId, conferenceTitle, startDate, endDate, comment) {
+function fillModalForm(roomName, roomId, conferenceTitle, startDate, endDate, comment) {
   // Заполняем значениями из аргументов функции
+  var roomNameInput = document.getElementById("roomName");
   var titleInput = document.getElementById("title");
-  var startDateInput = document.getElementById("startDate");
-  var endDateInput = document.getElementById("endDate");
+  const startDateInput = document.getElementById("timeStart");
+  const endDateInput = document.getElementById("timeEnd");
   var commentInput = document.getElementById("comment");
   var roomIdInput = document.getElementById("roomId");
 
+  roomNameInput.value = roomName
   titleInput.value = conferenceTitle;
   //eventDay.value = formatDate(document.getElementById("startDate"));
-  console.log(comment);
   commentInput.value = comment;
   roomIdInput.value = roomId;
-  startDateInput.value = formatDate(startDate);
-  endDateInput.value = formatDate(endDate);
+
+  flatpickr(startDateInput, {
+    enableTime: true,
+    noCalendar: true,
+    minTime: "8:30",
+    maxTime: "16:30",
+    dateFormat: "H:i",
+    time_24hr: true,
+    defaultDate: startDate.slice(11,16),
+  });
+
+  flatpickr(endDateInput, {
+    enableTime: true,
+    noCalendar: true,
+    minTime: "9:30",
+    maxTime: "17:30",
+    dateFormat: "H:i",
+    time_24hr: true,
+    defaultDate: endDate.slice(11,16),
+  });
+
+   startDateInput.value = startDate.slice(11,16);
+   endDateInput.value = endDate.slice(11,16);
 }
 
-function formatDate(dateString) {
-  const date = new Date(dateString);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
-}
 
 async function roomInfo(roomId) {
   fetch(`/roomInfo=${roomId}`, {
@@ -177,7 +189,9 @@ document.addEventListener("DOMContentLoaded", function () {
         defaultDate: today,
         minDate: today,
         maxDate: new Date().fp_incr(18), // Ограничение на 7 дней вперед
-        dateFormat: "d-m",
+        altInput: true,
+        altFormat: "F j",
+        dateFormat: "m-d",
       });
 
       const timeInputStart = document.getElementById(

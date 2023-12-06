@@ -8,7 +8,7 @@ from flask import (
     jsonify,
 )
 from flask_login import login_required, current_user
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, date
 from sqlalchemy import and_, or_
 from .filters import get_plural_form
 from .models import Room
@@ -122,7 +122,6 @@ def get_all_booked_rooms():
             (Room.endDate > datetime.now()),
         ).all()
 
-      
         for booking in booking_list:
             start_time = booking.startDate.strftime("%Y-%m-%d %H:%M")
             end_time = booking.endDate.strftime("%Y-%m-%d %H:%M")
@@ -130,7 +129,7 @@ def get_all_booked_rooms():
             event_name = booking.conferenceTitle
             event_comment = booking.comment
             occupied_times.append(
-                {   
+                {
                     "roomName": roomName,
                     "start_time": start_time,
                     "end_time": end_time,
@@ -169,17 +168,21 @@ def book_room():
     for date in dates:
         # Преобразуем строки в объекты datetime
         datetime_start = datetime.strptime(
-            f"{current_year}-{date} {timeStart}", "%Y-%d-%m %H:%M"
+            f"{current_year}-{date} {timeStart}", "%Y-%m-%d %H:%M"
         )
         datetime_end = datetime.strptime(
-            f"{current_year}-{date} {timeEnd}", "%Y-%d-%m %H:%M"
+            f"{current_year}-{date} {timeEnd}", "%Y-%m-%d %H:%M"
         )
-        print(datetime_start)
 
-        if datetime_end - datetime_start > timedelta(hours=24):
-            flash("Нельзя бронировать зал более чем на 24 часа", category="error")
+        if datetime_end < datetime.now():
+            flash("Нельзя бронировать зал на время, которое прошло.", category="error"),
+            return redirect(url_for("rooms.home"))
+        elif datetime_end - datetime_start > timedelta(hours=24):
+            flash("Нельзя бронировать зал более чем на 24 часа", category="error"),
+            return redirect(url_for("rooms.home"))
         elif datetime_end < datetime_start + timedelta(minutes=15):
-            flash("Нельзя бронировать зал менее чем на 15 минут", category="error")
+            flash("Нельзя бронировать зал менее чем на 15 минут", category="error"),
+            return redirect(url_for("rooms.home"))
         else:
             existing_bookings = Room.query.filter(
                 Room.roomName == room_name,
@@ -294,31 +297,27 @@ def edit_booking():
         elif (
             booking.userId != current_user.id
         ):  # Проверка, что пользователь может редактировать только свои брони
-            return (
-                jsonify({"message": "У вас нет прав для редактирования этой брони"}),
-                403,
-            )
+            flash("У вас нет прав для редактирования этой брони", category="error")
+
         else:
             room_name = request.form.get("roomName")
+
+            current_date = date.today()
             datetime_start = datetime.strptime(
-                request.form["startDate"], "%Y-%m-%dT%H:%M"
+                f"{current_date} {request.form['timeStart']}", "%Y-%m-%d %H:%M"
             )
-            datetime_end = datetime.strptime(request.form["endDate"], "%Y-%m-%dT%H:%M")
+            datetime_end = datetime.strptime(
+                f"{current_date} {request.form['timeEnd']}", "%Y-%m-%d %H:%M"
+            )
             conference_title = request.form["title"]
             room_comment = request.form["comment"]
 
             if datetime_end - datetime_start > timedelta(hours=24):
-                return (
-                    jsonify({"message": "Нельзя бронировать зал более чем на 24 часа"}),
-                    400,
-                )
+                flash("Нельзя бронировать зал более чем на 24 часа", category="error")
+                return redirect(url_for("rooms.userRooms")),
             elif datetime_end < datetime_start + timedelta(minutes=15):
-                return (
-                    jsonify(
-                        {"message": "Нельзя бронировать зал менее чем на 15 минут"}
-                    ),
-                    400,
-                )
+                flash("Нельзя бронировать зал менее чем на 15 минут", category="error")
+                return redirect(url_for("rooms.userRooms")),
             else:
                 existing_bookings = Room.query.filter(
                     Room.roomName == booking.roomName,
@@ -343,10 +342,8 @@ def edit_booking():
                 ).all()
 
                 if existing_bookings:
-                    return (
-                        jsonify({"message": "Вы не можете забронировать на это время"}),
-                        400,
-                    )
+                    flash("Вы не можете забронировать на это время", category="error")
+                    return redirect(url_for("rooms.userRooms")),
                 else:
                     booking.roomName = room_name
                     booking.startDate = datetime_start
