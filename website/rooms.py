@@ -32,7 +32,7 @@ def home():
     return render_template(
         "home.html",
         user=current_user,
-        current_datetime=datetime.now(),
+        eventDatetime=datetime.now(),
         roomsNames=roomsNames,
     )
 
@@ -77,7 +77,7 @@ def userRooms():
     return render_template(
         "userRooms.html",
         user=current_user,
-        current_datetime=currentDatetime,
+        eventDatetime=currentDatetime,
         myRooms=my_rooms,
         roomsNames=roomsNames,
     )
@@ -271,7 +271,6 @@ def cancel_book():
 def edit_booking():
     """
     Редактирует существующую бронь комнаты.
-
     Args:
         roomId (int): Идентификатор брони.
 
@@ -281,49 +280,46 @@ def edit_booking():
         title (str): Новое название конференции.
         comment (str): Новый комментарий к брони.
 
-    Returns:
-        JSON response:
-            {
-                "message": "Бронь успешно отредактирована"
-            }
     """
 
     if request.method == "POST" or request.form.get("_method") == "PATCH":
         roomId = request.form.get("roomId")
-        booking = Room.query.get(roomId)  # лучение существующей брони по идентификатору
+        booking = Room.query.get(
+            roomId
+        )  # получение существующей брони по идентификатору
 
         if not booking:
-            return jsonify({"message": "Бронь не найдена"}), 404
-        elif (
-            booking.userId != current_user.id
-        ):  # Проверка, что пользователь может редактировать только свои брони
+            flash("Бронь не найдена", category="error")
+            return redirect(url_for("rooms.userRooms"))
+        elif booking.userId != current_user.id:
             flash("У вас нет прав для редактирования этой брони", category="error")
-
+            return redirect(url_for("rooms.userRooms"))
         else:
             room_name = request.form.get("roomName")
+            bookDate = request.form.get("bookDate")
 
-            current_date = date.today()
             datetime_start = datetime.strptime(
-                f"{current_date} {request.form['timeStart']}", "%Y-%m-%d %H:%M"
+                f"{bookDate} {request.form['timeStart']}", "%Y-%m-%d %H:%M"
             )
             datetime_end = datetime.strptime(
-                f"{current_date} {request.form['timeEnd']}", "%Y-%m-%d %H:%M"
+                f"{bookDate} {request.form['timeEnd']}", "%Y-%m-%d %H:%M"
             )
             conference_title = request.form["title"]
             room_comment = request.form["comment"]
 
             if datetime_end - datetime_start > timedelta(hours=24):
                 flash("Нельзя бронировать зал более чем на 24 часа", category="error")
-                return redirect(url_for("rooms.userRooms")),
+                return redirect(url_for("rooms.userRooms"))
             elif datetime_end < datetime_start + timedelta(minutes=15):
                 flash("Нельзя бронировать зал менее чем на 15 минут", category="error")
-                return redirect(url_for("rooms.userRooms")),
+                return redirect(url_for("rooms.userRooms"))
             else:
                 existing_bookings = Room.query.filter(
                     Room.roomName == booking.roomName,
                     or_(
                         and_(
-                            Room.startDate < datetime_end, Room.endDate > datetime_start
+                            Room.startDate < datetime_end,
+                            Room.endDate > datetime_start,
                         ),  # Проверка перекрытия существующих броней
                         and_(
                             Room.startDate == datetime_start,
@@ -334,7 +330,8 @@ def edit_booking():
                             Room.endDate > datetime_start,
                         ),  # Проверка частичного перекрытия броней
                         and_(
-                            Room.startDate < datetime_end, Room.endDate > datetime_end
+                            Room.startDate < datetime_end,
+                            Room.endDate > datetime_end,
                         ),  # Проверка частичного перекрытия броней
                     ),
                     Room.id
@@ -343,14 +340,13 @@ def edit_booking():
 
                 if existing_bookings:
                     flash("Вы не можете забронировать на это время", category="error")
-                    return redirect(url_for("rooms.userRooms")),
+                    return redirect(url_for("rooms.userRooms"))
                 else:
                     booking.roomName = room_name
                     booking.startDate = datetime_start
                     booking.endDate = datetime_end
                     booking.conferenceTitle = conference_title
                     booking.comment = room_comment
-
                     db.session.commit()
                     flash("Бронь успешно отредактирована", category="info")
 

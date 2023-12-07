@@ -111,6 +111,7 @@ function fillModalForm(roomName, roomId, conferenceTitle, startDate, endDate, co
   // Заполняем значениями из аргументов функции
   var roomNameInput = document.getElementById("roomName");
   var titleInput = document.getElementById("title");
+  var bookDateInput = document.getElementById("bookDate");
   const startDateInput = document.getElementById("timeStart");
   const endDateInput = document.getElementById("timeEnd");
   var commentInput = document.getElementById("comment");
@@ -118,7 +119,7 @@ function fillModalForm(roomName, roomId, conferenceTitle, startDate, endDate, co
 
   roomNameInput.value = roomName
   titleInput.value = conferenceTitle;
-  //eventDay.value = formatDate(document.getElementById("startDate"));
+  bookDateInput.value = startDate.slice(0,10);
   commentInput.value = comment;
   roomIdInput.value = roomId;
 
