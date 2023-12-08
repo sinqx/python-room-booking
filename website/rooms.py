@@ -74,6 +74,7 @@ def userRooms():
                 room.status = f"Начало через: {minutes_str}"
         else:
             room.status = "Мероприятие окончено"
+    
     return render_template(
         "userRooms.html",
         user=current_user,
@@ -150,10 +151,10 @@ def book_room():
 
     Args:
         roomName (str): Номер комнаты.
-        startDate (str): Дата и время начала бронирования в формате "%Y-%m-%dT%H:%M".
-        endDate (str): Дата и время окончания бронирования в формате "%Y-%m-%dT%H:%M".
         title (str): Название конференции.
-        days (int): количество дней, сколько будет длиться конференция.
+        days (int): количество дней, сколько будет длиться конференция, в формате "%m-%d ".
+        startDate (str): Время начала бронирования в формате "%H:%M".
+        endDate (str): Время окончания бронирования в формате "%H:%M".
 
     Returns:
         Перенаправление на домашнюю страницу.
@@ -236,34 +237,36 @@ def book_room():
 def cancel_book():
     """
     Отменяет или завершает бронирование комнаты.
-
     Args:
         bookingId (str): Идентификатор бронирования.
-
     Returns:
         Перенаправление на домашнюю страницу.
     """
+
     if request.method == "POST" or request.method == "DELETE":
-        room_id = request.form.get("room_id")
+        bookingId = request.form.get("room_id")
+        booking = Room.query.get(
+            bookingId
+        )  # Получение существующей брони по идентификатору
 
-        booked_room = Room.query.filter_by(id=room_id).first()
-
-        current_time = datetime.now().astimezone(booked_room.startDate.tzinfo)
-        if booked_room.userId == current_user.id:
-            if current_time < booked_room.startDate:
-                db.session.delete(booked_room)
-                flash("Бронь отменена", category="success")
-            elif (
-                current_time > booked_room.startDate
-                and current_time < booked_room.endDate
-            ):
-                booked_room.endDate = current_time
-                flash("Бронь закончена", category="success")
-            db.session.commit()
+        if not booking:
+            flash("Бронь не найдена", category="error")
+        elif booking.userId != current_user.id:
+            flash("У вас нет прав для отмены этой брони", category="error")
         else:
-            flash("Вы можете отменять только свои брони", category="error")
+            current_time = datetime.now()
+            if current_time < booking.startDate:
+                db.session.delete(booking)
+                flash("Бронь отменена", category="success")
+            elif current_time > booking.startDate and current_time < booking.endDate:
+                booking.endDate = current_time
+                flash("Бронь завершена", category="success")
 
-    return redirect(url_for("rooms.home"))
+            db.session.commit()
+    else:
+        flash("Неверный метод запроса", category="error")
+
+    return redirect(url_for("rooms.userRooms"))
 
 
 @rooms.route("/edit_booking", methods=["POST", "PATCH"])
@@ -275,11 +278,11 @@ def edit_booking():
         roomId (int): Идентификатор брони.
 
     Request Body (JSON):
-        startDate (str): Новая дата и время начала бронирования в формате "%Y-%m-%dT%H:%M".
-        endDate (str): Новая дата и время окончания бронирования в формате "%Y-%m-%dT%H:%M".
         title (str): Новое название конференции.
         comment (str): Новый комментарий к брони.
-
+        conference_title (str): Новое навание брони.
+        startDate (str): Новая дата и время начала бронирования в формате "%Y-%m-%dT%H:%M".
+        endDate (str): Новая дата и время окончания бронирования в формате "%Y-%m-%dT%H:%M".
     """
 
     if request.method == "POST" or request.form.get("_method") == "PATCH":
@@ -318,8 +321,7 @@ def edit_booking():
                     Room.roomName == booking.roomName,
                     or_(
                         and_(
-                            Room.startDate < datetime_end,
-                            Room.endDate > datetime_start,
+                            Room.startDate < datetime_end, Room.endDate > datetime_start
                         ),  # Проверка перекрытия существующих броней
                         and_(
                             Room.startDate == datetime_start,
@@ -330,8 +332,7 @@ def edit_booking():
                             Room.endDate > datetime_start,
                         ),  # Проверка частичного перекрытия броней
                         and_(
-                            Room.startDate < datetime_end,
-                            Room.endDate > datetime_end,
+                            Room.startDate < datetime_end, Room.endDate > datetime_end
                         ),  # Проверка частичного перекрытия броней
                     ),
                     Room.id

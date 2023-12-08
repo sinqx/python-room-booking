@@ -48,10 +48,7 @@ content %}
             <form action="/cancel_book" method="POST" class="delete-form">
               <input type="hidden" name="_method" value="DELETE" />
               <input type="hidden" name="room_id" value="{{ room.id }}" />
-              <button
-                type="submit"
-                class="btn btn-xs"
-              >
+              <button type="submit" class="btn btn-xs">
                 <img
                   width="25"
                   height="25"
@@ -69,8 +66,8 @@ content %}
               data-bs-target="#bookingModal{{ id }}"
               data-room-number="{{ room.id }}"
               onclick="fillModalForm('{{room.roomName}}','{{ room.id }}', 
-              '{{ room.conferenceTitle }}', '{{ room.startDate }}',
-               '{{ room.endDate }}', '{{ room.comment }}')"
+                '{{ room.conferenceTitle }}', '{{ room.startDate }}',
+                '{{ room.endDate }}', '{{ room.comment }}')"
             >
               <img
                 width="25"
@@ -89,5 +86,4 @@ content %}
     {% endif %}
   </div>
 </div>
-
 {% include "edit_booking.html" %} {% endblock %}
