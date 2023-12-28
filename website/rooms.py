@@ -74,12 +74,14 @@ def userRooms():
                 room.status = f"Начало через: {minutes_str}"
         else:
             room.status = "Мероприятие окончено"
-    
+
     return render_template(
         "userRooms.html",
         user=current_user,
         eventDatetime=currentDatetime,
-        myRooms=my_rooms,
+        myRooms=sorted(
+            my_rooms, key=lambda room: room.startDate.replace(tzinfo=timezone.utc)
+        ),
         roomsNames=roomsNames,
     )
 
@@ -164,19 +166,15 @@ def book_room():
     timeStart = request.form.get("timeInputStart")
     timeEnd = request.form.get("timeInputEnd")
     dates = event_days.split(", ")
-    current_year = datetime.now().year
 
     for date in dates:
         # Преобразуем строки в объекты datetime
-        datetime_start = datetime.strptime(
-            f"{current_year}-{date} {timeStart}", "%Y-%m-%d %H:%M"
-        )
-        datetime_end = datetime.strptime(
-            f"{current_year}-{date} {timeEnd}", "%Y-%m-%d %H:%M"
-        )
+        datetime_start = datetime.strptime(f"{date} {timeStart}", "%Y-%m-%d %H:%M")
+        datetime_end = datetime.strptime(f"{date} {timeEnd}", "%Y-%m-%d %H:%M")
 
         if datetime_end < datetime.now():
             flash("Нельзя бронировать зал на время, которое прошло.", category="error"),
+            print(datetime_end)
             return redirect(url_for("rooms.home"))
         elif datetime_end - datetime_start > timedelta(hours=24):
             flash("Нельзя бронировать зал более чем на 24 часа", category="error"),

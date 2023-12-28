@@ -8,6 +8,7 @@ import json
 
 auth = Blueprint("auth", __name__)
 
+
 @auth.route("/login", methods=["GET", "POST"])
 def login():
     """
@@ -75,9 +76,10 @@ def sign_up():
         password1 = request.form.get("password1")
         password2 = request.form.get("password2")
 
-        #user_exists = db.session.query(exists().where(User.email == email)).scalar()
-        if email == "":
+        if db.session.query(exists().where(User.email == email)).scalar():
             flash("Пользователь с таким email уже существует.", category="error")
+        elif email == "":
+            flash("Email не может быть пустым.", category="error")
         elif len(email) < 4:
             flash("Email должен содержать более 3 символов.", category="error")
         elif len(first_name) < 2:
@@ -96,7 +98,7 @@ def sign_up():
                 firstName=first_name,
                 secondName=second_name,
                 department=department,
-                surName= surName,
+                surName=surName,
                 password=generate_password_hash(password1, method="sha256"),
                 role="user",
             )
@@ -106,6 +108,6 @@ def sign_up():
             flash("Account created!", category="success")
             return redirect(url_for("rooms.home"))
 
-    with open('website\static\departments.json', 'r', encoding='utf-8') as file:
+    with open("website\static\departments.json", "r", encoding="utf-8") as file:
         departments = json.load(file)
-    return render_template("sign_up.html", user = current_user, departments=departments)
+    return render_template("sign_up.html", user=current_user, departments=departments)

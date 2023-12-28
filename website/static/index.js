@@ -192,7 +192,7 @@ document.addEventListener("DOMContentLoaded", function () {
         maxDate: new Date().fp_incr(18), // Ограничение на 7 дней вперед
         altInput: true,
         altFormat: "F j",
-        dateFormat: "m-d",
+        dateFormat: "Y-m-d",
       });
 
       const timeInputStart = document.getElementById(
