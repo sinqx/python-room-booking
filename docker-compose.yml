@@ -1,0 +1,17 @@
+version: "4.31.1"
+
+services:
+  web:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+  db:
+    image: postgres:16.1-alpine
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: sinqx
+      POSTGRES_PASSWORD: 663857
+    ports:
+      - "5432:5432"

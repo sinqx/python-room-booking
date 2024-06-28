@@ -1,12 +1,8 @@
+import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from os import path
 from flask_login import LoginManager
-from website import filters 
-
-db = SQLAlchemy()
-DB_NAME = "database.db"
-
+from . import db, login_manager
 
 def create_app():
     """
@@ -18,18 +14,11 @@ def create_app():
     app = Flask(__name__)
 
     app.config["SECRET_KEY"] = "SECRET_KEY"
-    app.config[
-        "SQLALCHEMY_DATABASE_URI"
-    ] = "postgresql://postgres:password@localhost/postgres"
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
     db.init_app(app)
 
     from website import filters
     app.jinja_env.filters['strftime'] = filters.strftime
-  #  app.config[
-  #      "SQLALCHEMY_DATABASE_URI"
-  #  ] =  "mssql+pymssql://sinqx:password@localhost/mssql"
-  # 
-  #  db.init_app(app)    
 
     # Импортируем и регистрируем синематические модули
     from .rooms import rooms
@@ -64,15 +53,3 @@ def create_app():
         return User.query.get(int(id))
 
     return app
-
-
-def create_database(app):
-    """
-    Создает базу данных, если она не существует.
-
-    Args:
-        app (Flask): Экземпляр Flask приложения.
-    """
-    if not path.exists("website/" + DB_NAME):
-        db.create_all(app=app)
-        print("Created Database!")
